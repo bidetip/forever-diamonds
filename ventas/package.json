@@ -1,0 +1,14 @@
+{
+  "name": "forever-diamonds-ventas",
+  "version": "1.0.0",
+  "description": "Backend para registro de ventas Forever Diamonds",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "googleapis": "^128.0.0"
+  }
+}

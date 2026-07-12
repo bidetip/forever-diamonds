@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Forever Diamonds — Ventas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --navy:    #1F2D3D;
+      --gold:    #D9B36C;
+      --gold-lt: #f0d9a8;
+      --white:   #FFFFFF;
+      --g50:     #F8F8F6;
+      --g200:    #E5E3DE;
+      --g400:    #B0ADA8;
+      --g500:    #8A8680;
+      --err:     #C0392B;
+      --ok:      #1E6B45;
+      --warn:    #B7791F;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:var(--g50);min-height:100vh;color:var(--navy)}
+
+    /* ── HEADER ── */
+    header{background:var(--navy);padding:18px 24px 14px;text-align:center;position:sticky;top:0;z-index:20;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+    .logo{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;color:var(--gold);letter-spacing:.08em}
+    .sub{font-size:10px;color:rgba(217,179,108,.6);letter-spacing:.15em;text-transform:uppercase;margin-top:2px}
+
+    /* ── VENDEDOR BAR ── */
+    .vbar{background:var(--white);border-bottom:1px solid var(--g200);padding:10px 16px;display:flex;align-items:center;gap:10px}
+    .vbar span{font-size:11px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
+    .vbtn{flex:1;padding:8px 0;border:2px solid var(--g200);border-radius:8px;background:var(--g50);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--g500);cursor:pointer;transition:all .15s;text-align:center}
+    .vbtn.active{border-color:var(--gold);background:var(--navy);color:var(--gold);font-weight:600}
+
+    /* ── TAB NAV ── */
+    .tabs{display:flex;background:var(--white);border-bottom:2px solid var(--g200)}
+    .tab{flex:1;padding:14px 8px;text-align:center;font-size:13px;font-weight:600;color:var(--g500);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:4px}
+    .tab .icon{font-size:18px}
+    .tab.active{color:var(--navy);border-bottom-color:var(--gold)}
+
+    /* ── MAIN ── */
+    main{padding:16px 16px 60px;max-width:480px;margin:0 auto}
+    .panel{display:none}.panel.active{display:block}
+
+    /* ── CARDS ── */
+    .card{background:var(--white);border-radius:12px;padding:18px;margin-bottom:14px;border:1px solid var(--g200)}
+    .card-title{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:var(--navy);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:8px}
+    .card-title .dot{width:5px;height:5px;background:var(--gold);border-radius:50%;flex-shrink:0}
+
+    /* ── FIELDS ── */
+    .field{margin-bottom:13px}.field:last-child{margin-bottom:0}
+    .lbl{display:block;font-size:11px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+    .lbl .req{color:var(--gold);margin-left:2px}
+    input,select,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--g200);border-radius:8px;font-family:'Inter',sans-serif;font-size:15px;color:var(--navy);background:var(--white);transition:border-color .15s;-webkit-appearance:none;appearance:none}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(217,179,108,.12)}
+    input.err,select.err{border-color:var(--err)}
+    select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A8680' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px}
+    textarea{resize:none;height:72px;font-size:14px}
+    .hint{font-size:11px;color:var(--g500);margin-top:4px}
+
+    /* Crédito extra fields */
+    .credito-fields{display:none;margin-top:13px;padding-top:13px;border-top:1px dashed var(--g200)}
+    .credito-fields.show{display:block}
+
+    /* ── BOTONES ── */
+    .btn{width:100%;padding:15px;border:none;border-radius:12px;font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;letter-spacing:.05em;cursor:pointer;transition:all .2s;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px}
+    .btn:active{transform:scale(.98)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .btn-primary{background:var(--navy);color:var(--gold)}
+    .btn-secondary{background:var(--white);color:var(--navy);border:2px solid var(--navy)}
+    .spinner{width:17px;height:17px;border:2px solid rgba(217,179,108,.3);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;display:none}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── BUSCADOR ── */
+    .search-wrap{position:relative;margin-bottom:14px}
+    .search-wrap input{padding-left:40px}
+    .search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:16px;pointer-events:none}
+    .search-results{display:none}
+    .result-card{background:var(--white);border:1.5px solid var(--g200);border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s}
+    .result-card:hover,.result-card:active{border-color:var(--gold)}
+    .result-card.selected{border-color:var(--gold);background:#fffdf5}
+    .result-cip{font-size:12px;font-weight:600;color:var(--g500);letter-spacing:.08em;margin-bottom:2px}
+    .result-cliente{font-size:16px;font-weight:600;color:var(--navy);margin-bottom:6px}
+    .result-row{display:flex;justify-content:space-between;font-size:12px;color:var(--g500);margin-bottom:2px}
+    .result-row .label{}
+    .result-row .val{font-weight:600;color:var(--navy)}
+    .saldo-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;margin-top:6px}
+    .saldo-badge.pendiente{background:#FEF3C7;color:var(--warn)}
+    .saldo-badge.pagado{background:#D1FAE5;color:var(--ok)}
+    .no-results{text-align:center;padding:20px;color:var(--g500);font-size:14px}
+
+    /* ── PAGO SELECCIONADO ── */
+    .pago-detail{display:none;background:var(--white);border-radius:12px;border:2px solid var(--gold);padding:18px;margin-bottom:14px}
+    .pago-detail.show{display:block}
+    .pago-resumen{background:var(--g50);border-radius:8px;padding:12px;margin-bottom:14px}
+    .pago-resumen-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+    .pago-resumen-row:last-child{margin-bottom:0;font-weight:700;font-size:15px;padding-top:6px;border-top:1px solid var(--g200)}
+    .pago-resumen-row .total{color:var(--navy)}
+
+    /* ── OVERLAY VENDEDOR ── */
+    .overlay{position:fixed;inset:0;background:rgba(31,45,61,.75);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
+    .ov-card{background:var(--white);border-radius:16px;padding:32px 24px;text-align:center;max-width:300px;width:100%}
+    .ov-card .gem{font-size:40px;margin-bottom:10px}
+    .ov-card h2{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--navy);margin-bottom:6px}
+    .ov-card p{font-size:13px;color:var(--g500);margin-bottom:22px}
+    .ov-btns{display:flex;flex-direction:column;gap:10px}
+    .ov-btn{padding:14px;border:2px solid var(--navy);border-radius:10px;background:var(--white);font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--navy);cursor:pointer;transition:all .15s}
+    .ov-btn:active{background:var(--navy);color:var(--gold)}
+
+    /* ── TOAST ── */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);padding:13px 22px;border-radius:10px;font-size:14px;font-weight:500;z-index:100;transition:transform .3s ease;max-width:320px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+    .toast.show{transform:translateX(-50%) translateY(0)}
+    .toast.ok{background:var(--ok);color:var(--white)}
+    .toast.er{background:var(--err);color:var(--white)}
+
+    /* ── MODAL PAGADO COMPLETO ── */
+    .modal-overlay{position:fixed;inset:0;background:rgba(31,45,61,.8);z-index:60;display:none;align-items:center;justify-content:center;padding:24px}
+    .modal-overlay.show{display:flex}
+    .modal{background:var(--white);border-radius:20px;padding:36px 28px;text-align:center;max-width:300px;width:100%}
+    .modal .big-emoji{font-size:56px;margin-bottom:12px}
+    .modal h2{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--navy);margin-bottom:8px}
+    .modal p{font-size:14px;color:var(--g500);margin-bottom:24px;line-height:1.5}
+    .modal .highlight{color:var(--gold);font-weight:700}
+  </style>
+</head>
+<body>
+
+<!-- OVERLAY VENDEDOR -->
+<div class="overlay" id="overlayVendedor">
+  <div class="ov-card">
+    <div class="gem">💎</div>
+    <h2>Forever Diamonds</h2>
+    <p>¿Quién está registrando?</p>
+    <div class="ov-btns">
+      <button class="ov-btn" onclick="elegirVendedor('Thalia')">Thalia</button>
+      <button class="ov-btn" onclick="elegirVendedor('Miguel')">Miguel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PAGO COMPLETO -->
+<div class="modal-overlay" id="modalPagado">
+  <div class="modal">
+    <div class="big-emoji">🎉</div>
+    <h2>¡Pagado al 100%!</h2>
+    <p>La venta de <span class="highlight" id="modalCliente"></span> quedó completamente saldada.</p>
+    <button class="btn btn-primary" onclick="cerrarModal()">Listo</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Forever Diamonds</div>
+  <div class="sub">Sistema de Ventas</div>
+</header>
+
+<!-- VENDEDOR BAR -->
+<div class="vbar">
+  <span>Vendedor</span>
+  <button class="vbtn" id="btnThalia" onclick="elegirVendedor('Thalia')">Thalia</button>
+  <button class="vbtn" id="btnMiguel" onclick="elegirVendedor('Miguel')">Miguel</button>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" id="tabNueva" onclick="cambiarTab('nueva')">
+    <span class="icon">🛍️</span>Nueva Venta
+  </div>
+  <div class="tab" id="tabPago" onclick="cambiarTab('pago')">
+    <span class="icon">💰</span>Registrar Pago
+  </div>
+</div>
+
+<main>
+
+  <!-- ══ PANEL: NUEVA VENTA ══ -->
+  <div class="panel active" id="panelNueva">
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Producto</div>
+      <div class="field">
+        <label class="lbl" for="nCIP">Código CIP <span class="req">*</span></label>
+        <input type="text" id="nCIP" placeholder="Ej. FD-AN-18KW-00447" autocomplete="off" autocapitalize="characters" spellcheck="false"/>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Datos de la Venta</div>
+      <div class="field">
+        <label class="lbl" for="nFecha">Fecha de Venta <span class="req">*</span></label>
+        <input type="date" id="nFecha"/>
+      </div>
+      <div class="field">
+        <label class="lbl" for="nCliente">Cliente <span class="req">*</span></label>
+        <input type="text" id="nCliente" placeholder="Nombre completo" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label class="lbl" for="nMetodo">Método de Pago <span class="req">*</span></label>
+        <select id="nMetodo">
+          <option value="">— Seleccionar —</option>
+          <option>Efectivo</option>
+          <option>Tarjeta Crédito</option>
+          <option>Tarjeta Débito</option>
+          <option>Transferencia</option>
+          <option>Crédito</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="lbl" for="nTipo">Tipo de Venta <span class="req">*</span></label>
+        <select id="nTipo" onchange="toggleCredito()">
+          <option value="">— Seleccionar —</option>
+          <option value="Contado">Contado</option>
+          <option value="Crédito">Crédito</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Precio</div>
+      <div class="field">
+        <label class="lbl" for="nPrecio">Precio Total (USD) <span class="req">*</span></label>
+        <input type="number" id="nPrecio" placeholder="0.00" step="0.01" min="0"/>
+      </div>
+      <div class="field">
+        <label class="lbl" for="nAjuste">Ajuste de Precio (USD)</label>
+        <input type="number" id="nAjuste" placeholder="0.00" step="0.01" min="0"/>
+        <div class="hint">Dejar en 0 si no hay ajuste</div>
+      </div>
+
+      <!-- Campos extra para crédito -->
+      <div class="credito-fields" id="creditoFields">
+        <div class="field">
+          <label class="lbl" for="nPagoInicial">Pago Inicial (USD)</label>
+          <input type="number" id="nPagoInicial" placeholder="0.00" step="0.01" min="0"/>
+          <div class="hint">Ingresa 0 si el cliente no hace ningún pago hoy</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Notas</div>
+      <div class="field">
+        <label class="lbl" for="nObs">Observaciones</label>
+        <textarea id="nObs" placeholder="Notas adicionales sobre la venta..."></textarea>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="btnNueva" onclick="registrarVenta()">
+      <span id="txtNueva">Registrar Venta</span>
+      <div class="spinner" id="spNueva"></div>
+    </button>
+
+  </div><!-- /panelNueva -->
+
+
+  <!-- ══ PANEL: REGISTRAR PAGO ══ -->
+  <div class="panel" id="panelPago">
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Buscar Venta</div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="buscarInput" placeholder="Nombre del cliente o Código CIP"
+               autocomplete="off" oninput="onBuscar()"/>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+    </div>
+
+    <!-- Detalle + formulario de pago -->
+    <div class="pago-detail" id="pagoDetail">
+      <div class="card-title"><span class="dot"></span>Resumen de la Venta</div>
+      <div class="pago-resumen" id="pagoResumen"></div>
+
+      <div class="field">
+        <label class="lbl" for="pFecha">Fecha del Pago <span class="req">*</span></label>
+        <input type="date" id="pFecha"/>
+      </div>
+      <div class="field">
+        <label class="lbl" for="pMonto">Monto a Pagar (USD) <span class="req">*</span></label>
+        <input type="number" id="pMonto" placeholder="0.00" step="0.01" min="0.01"/>
+      </div>
+      <div class="field">
+        <label class="lbl" for="pNotas">Notas</label>
+        <textarea id="pNotas" placeholder="Referencia, número de transferencia, etc."></textarea>
+      </div>
+
+      <button class="btn btn-primary" id="btnPago" onclick="registrarPago()">
+        <span id="txtPago">Registrar Pago</span>
+        <div class="spinner" id="spPago"></div>
+      </button>
+    </div>
+
+  </div><!-- /panelPago -->
+
+</main>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── CONFIG ──────────────────────────────
+  const BACKEND = 'https://TU-BACKEND-URL.com';
+  // ────────────────────────────────────────
+
+  let vendedor = '';
+  let ventaSeleccionada = null;
+  let buscarTimer = null;
+
+  // ── INIT ────────────────────────────────
+  document.getElementById('nFecha').value = hoy();
+  document.getElementById('pFecha').value = hoy();
+
+  function hoy() { return new Date().toISOString().split('T')[0]; }
+
+  // ── VENDEDOR ────────────────────────────
+  function elegirVendedor(nombre) {
+    vendedor = nombre;
+    document.getElementById('overlayVendedor').style.display = 'none';
+    document.getElementById('btnThalia').classList.toggle('active', nombre === 'Thalia');
+    document.getElementById('btnMiguel').classList.toggle('active', nombre === 'Miguel');
+  }
+
+  // ── TABS ────────────────────────────────
+  function cambiarTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab' + (tab === 'nueva' ? 'Nueva' : 'Pago')).classList.add('active');
+    document.getElementById('panel' + (tab === 'nueva' ? 'Nueva' : 'Pago')).classList.add('active');
+  }
+
+  // ── TOGGLE CRÉDITO ──────────────────────
+  function toggleCredito() {
+    const esCredito = document.getElementById('nTipo').value === 'Crédito';
+    document.getElementById('creditoFields').classList.toggle('show', esCredito);
+  }
+
+  // ── REGISTRAR VENTA ─────────────────────
+  async function registrarVenta() {
+    if (!vendedor) { toast('Selecciona un vendedor primero', 'er'); return; }
+
+    const campos = {
+      nCIP:     document.getElementById('nCIP').value.trim(),
+      nFecha:   document.getElementById('nFecha').value,
+      nCliente: document.getElementById('nCliente').value.trim(),
+      nMetodo:  document.getElementById('nMetodo').value,
+      nTipo:    document.getElementById('nTipo').value,
+      nPrecio:  document.getElementById('nPrecio').value,
+    };
+
+    let hayErr = false;
+    Object.entries(campos).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (!val) { el.classList.add('err'); hayErr = true; }
+      else el.classList.remove('err');
+    });
+    if (hayErr) { toast('Completa los campos obligatorios', 'er'); return; }
+
+    setLoading('Nueva', true);
+    try {
+      const body = {
+        vendedor,
+        codigoCIP:   campos.nCIP,
+        fechaVenta:  campos.nFecha,
+        cliente:     campos.nCliente,
+        metodoPago:  campos.nMetodo,
+        tipoVenta:   campos.nTipo,
+        precioTotal: campos.nPrecio,
+        ajustePrecio: document.getElementById('nAjuste').value || 0,
+        observaciones: document.getElementById('nObs').value.trim(),
+      };
+
+      const res  = await fetch(`${BACKEND}/api/ventas`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      const data = await res.json();
+
+      if (res.ok) {
+        // Si es crédito con pago inicial, registrar también el pago
+        const pagoInicial = parseFloat(document.getElementById('nPagoInicial').value) || 0;
+        if (campos.nTipo === 'Crédito' && pagoInicial > 0) {
+          await fetch(`${BACKEND}/api/pagos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              codigoCIP: campos.nCIP,
+              cliente: campos.nCliente,
+              fechaPago: campos.nFecha,
+              monto: pagoInicial,
+              vendedor,
+              notas: 'Pago inicial al momento de la venta',
+            }),
+          });
+        }
+        toast('✓ Venta registrada correctamente', 'ok');
+        limpiarNueva();
+      } else {
+        toast(data.error || 'Error al registrar', 'er');
+      }
+    } catch { toast('Sin conexión. Verifica tu internet.', 'er'); }
+    finally { setLoading('Nueva', false); }
+  }
+
+  function limpiarNueva() {
+    ['nCIP','nCliente','nAjuste','nObs','nPagoInicial'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    document.getElementById('nFecha').value = hoy();
+    document.getElementById('nMetodo').value = '';
+    document.getElementById('nTipo').value = '';
+    document.getElementById('creditoFields').classList.remove('show');
+    document.querySelectorAll('.err').forEach(el => el.classList.remove('err'));
+    document.getElementById('nPrecio').value = '';
+  }
+
+  // ── BUSCAR VENTA ────────────────────────
+  function onBuscar() {
+    clearTimeout(buscarTimer);
+    const q = document.getElementById('buscarInput').value.trim();
+    if (q.length < 2) {
+      document.getElementById('searchResults').style.display = 'none';
+      document.getElementById('pagoDetail').classList.remove('show');
+      ventaSeleccionada = null;
+      return;
+    }
+    buscarTimer = setTimeout(() => buscar(q), 400);
+  }
+
+  async function buscar(q) {
+    const cont = document.getElementById('searchResults');
+    cont.style.display = 'block';
+    cont.innerHTML = '<div class="no-results">Buscando...</div>';
+    try {
+      const res  = await fetch(`${BACKEND}/api/ventas/buscar?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (!res.ok) { cont.innerHTML = `<div class="no-results">${data.error}</div>`; return; }
+      if (!data.resultados.length) { cont.innerHTML = '<div class="no-results">No se encontraron ventas</div>'; return; }
+
+      cont.innerHTML = data.resultados.map((v, i) => `
+        <div class="result-card" onclick="seleccionarVenta(${i})" data-idx="${i}">
+          <div class="result-cip">${v.codigoCIP}</div>
+          <div class="result-cliente">${v.cliente}</div>
+          <div class="result-row"><span>Precio Final</span><span class="val">$${v.precioFinal.toFixed(2)}</span></div>
+          <div class="result-row"><span>Total Pagado</span><span class="val">$${v.totalPagado.toFixed(2)}</span></div>
+          <div class="result-row"><span>Vendedor</span><span class="val">${v.vendedor}</span></div>
+          <span class="saldo-badge ${v.pagado ? 'pagado' : 'pendiente'}">
+            ${v.pagado ? '✓ Pagado completo' : `Saldo: $${v.saldo.toFixed(2)}`}
+          </span>
+        </div>
+      `).join('');
+
+      // guardar resultados para seleccion
+      window._resultados = data.resultados;
+    } catch { cont.innerHTML = '<div class="no-results">Error al buscar. Verifica tu conexión.</div>'; }
+  }
+
+  function seleccionarVenta(idx) {
+    document.querySelectorAll('.result-card').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.result-card')[idx].classList.add('selected');
+
+    ventaSeleccionada = window._resultados[idx];
+    const v = ventaSeleccionada;
+    const detail = document.getElementById('pagoDetail');
+    const resumen = document.getElementById('pagoResumen');
+
+    resumen.innerHTML = `
+      <div class="pago-resumen-row"><span>${v.codigoCIP}</span><span class="val">${v.cliente}</span></div>
+      <div class="pago-resumen-row"><span>Precio Final</span><span class="val">$${v.precioFinal.toFixed(2)}</span></div>
+      <div class="pago-resumen-row"><span>Total Pagado</span><span class="val">$${v.totalPagado.toFixed(2)}</span></div>
+      <div class="pago-resumen-row"><span>Saldo Pendiente</span><span class="total" style="color:${v.pagado?'var(--ok)':'var(--warn)'}">$${v.saldo.toFixed(2)}</span></div>
+    `;
+
+    document.getElementById('pMonto').value = '';
+    document.getElementById('pNotas').value = '';
+    document.getElementById('pFecha').value = hoy();
+    detail.classList.add('show');
+
+    if (v.pagado) {
+      document.getElementById('btnPago').disabled = true;
+      toast('Esta venta ya está pagada al 100%', 'ok');
+    } else {
+      document.getElementById('btnPago').disabled = false;
+    }
+
+    // scroll suave al detalle
+    setTimeout(() => detail.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
+
+  // ── REGISTRAR PAGO ──────────────────────
+  async function registrarPago() {
+    if (!vendedor)         { toast('Selecciona un vendedor primero', 'er'); return; }
+    if (!ventaSeleccionada){ toast('Selecciona una venta primero', 'er'); return; }
+
+    const fecha = document.getElementById('pFecha').value;
+    const monto = document.getElementById('pMonto').value;
+
+    if (!fecha) { document.getElementById('pFecha').classList.add('err'); toast('Ingresa la fecha del pago', 'er'); return; }
+    if (!monto || parseFloat(monto) <= 0) { document.getElementById('pMonto').classList.add('err'); toast('Ingresa un monto válido', 'er'); return; }
+
+    document.getElementById('pFecha').classList.remove('err');
+    document.getElementById('pMonto').classList.remove('err');
+
+    setLoading('Pago', true);
+    try {
+      const res = await fetch(`${BACKEND}/api/pagos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          codigoCIP: ventaSeleccionada.codigoCIP,
+          cliente:   ventaSeleccionada.cliente,
+          fechaPago: fecha,
+          monto:     parseFloat(monto),
+          vendedor,
+          notas: document.getElementById('pNotas').value.trim(),
+        }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        if (data.pagadoCompleto) {
+          // Mostrar modal de celebración
+          document.getElementById('modalCliente').textContent = ventaSeleccionada.cliente;
+          document.getElementById('modalPagado').classList.add('show');
+        } else {
+          toast(`✓ Pago registrado. Saldo restante: $${data.nuevoSaldo.toFixed(2)}`, 'ok');
+        }
+        // Refrescar la búsqueda
+        ventaSeleccionada = null;
+        document.getElementById('pagoDetail').classList.remove('show');
+        document.getElementById('buscarInput').value = '';
+        document.getElementById('searchResults').style.display = 'none';
+      } else {
+        toast(data.error || 'Error al registrar el pago', 'er');
+      }
+    } catch { toast('Sin conexión. Verifica tu internet.', 'er'); }
+    finally { setLoading('Pago', false); }
+  }
+
+  function cerrarModal() {
+    document.getElementById('modalPagado').classList.remove('show');
+  }
+
+  // ── HELPERS ─────────────────────────────
+  function setLoading(id, on) {
+    document.getElementById('btn'+id).disabled = on;
+    document.getElementById('txt'+id).style.display = on ? 'none' : 'inline';
+    document.getElementById('sp'+id).style.display  = on ? 'block' : 'none';
+  }
+
+  function toast(msg, tipo) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `toast ${tipo} show`;
+    setTimeout(() => { el.className = 'toast'; }, 4000);
+  }
+
+  // Quitar error al escribir
+  document.querySelectorAll('input,select').forEach(el => {
+    el.addEventListener('input',  () => el.classList.remove('err'));
+    el.addEventListener('change', () => el.classList.remove('err'));
+  });
+</script>
+</body>
+</html>
