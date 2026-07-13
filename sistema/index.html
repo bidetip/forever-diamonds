@@ -84,7 +84,7 @@ body{font-family:'Inter',sans-serif;background:var(--g50);color:var(--navy);min-
   box-shadow:0 2px 8px rgba(0,0,0,.2);
 }
 .topbar-left{display:flex;align-items:center;gap:12px}
-.topbar-logo{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);font-weight:600;letter-spacing:.05em}
+.topbar-logo{font-family:'Inter',sans-serif;font-size:18px;color:var(--gold);font-weight:700;letter-spacing:.02em}
 .topbar-right{display:flex;align-items:center;gap:12px}
 .topbar-user{font-size:12px;color:rgba(217,179,108,.7);display:none}
 .topbar-logout{
@@ -134,7 +134,7 @@ body{font-family:'Inter',sans-serif;background:var(--g50);color:var(--navy);min-
 .kpi.k-warn::before{background:var(--warn)}
 .kpi.k-purple::before{background:#7B2D8B}
 .kpi-icon{font-size:24px;margin-bottom:8px}
-.kpi-val{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--navy);line-height:1.1}
+.kpi-val{font-family:'Inter',sans-serif;font-size:24px;font-weight:700;color:var(--navy);line-height:1.1}
 .kpi-label{font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.1em;margin-top:4px}
 .kpi-sub{font-size:11px;color:var(--g400);margin-top:2px}
 
@@ -204,7 +204,7 @@ code{font-family:'Courier New',monospace;font-size:11px;background:var(--g100);p
 .precio-preview{background:var(--gold-lt);border:1.5px solid var(--gold);border-radius:var(--radius);padding:16px;margin:14px 0;display:none}
 .precio-preview.show{display:block}
 .precio-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:3px 0}
-.precio-row.sep{border-top:1px solid var(--gold);margin-top:6px;padding-top:8px;font-weight:700;font-size:15px}
+.precio-row.sep{border-top:1px solid var(--gold);margin-top:6px;padding-top:8px;font-weight:700;font-size:14px;font-family:'Inter',sans-serif}
 .precio-row .lbl2{color:var(--g600)}
 .precio-row .val2{font-weight:600;color:var(--navy)}
 .stock-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;margin-top:8px;padding:4px 10px;border-radius:20px}
@@ -270,7 +270,7 @@ svg.chart{display:block;width:100%;height:180px}
 .venta-info .venta-cliente{font-size:14px;font-weight:600;color:var(--navy)}
 .venta-info .venta-cip{font-size:11px;color:var(--g500);margin-top:2px}
 .venta-right{text-align:right}
-.venta-right .venta-monto{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:var(--navy)}
+.venta-right .venta-monto{font-family:'Inter',sans-serif;font-size:15px;font-weight:700;color:var(--navy)}
 .venta-right .venta-fecha{font-size:11px;color:var(--g500);margin-top:2px}
 
 /* Responsive */
@@ -290,7 +290,7 @@ svg.chart{display:block;width:100%;height:180px}
 .filtro-btn.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
 .resumen-bar{display:flex;gap:16px;flex-wrap:wrap;padding:12px 16px;background:var(--gold-lt);border:1px solid var(--gold);border-radius:var(--radius);margin-bottom:14px}
 .resumen-bar .rb-item{display:flex;flex-direction:column;gap:2px}
-.resumen-bar .rb-val{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--navy)}
+.resumen-bar .rb-val{font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--navy)}
 .resumen-bar .rb-lbl{font-size:10px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em}
 .venta-desktop{display:none}
 .venta-mobile{display:block}
@@ -305,7 +305,7 @@ svg.chart{display:block;width:100%;height:180px}
 .vcard-cliente{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px}
 .vcard-cip{font-size:11px;color:var(--g500);margin-bottom:8px}
 .vcard-bottom{display:flex;justify-content:space-between;align-items:center}
-.vcard-precio{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--navy)}
+.vcard-precio{font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--navy)}
 .vcard-saldo-pend{font-size:12px;font-weight:600;color:var(--warn)}
 .vcard-saldo-ok{font-size:12px;font-weight:600;color:var(--ok)}
 
@@ -1403,10 +1403,10 @@ async function cargarCXC() {
     if (!tbody) return;
     tbody.innerHTML = creditos.map(v => `
       <tr>
-        <td><code>${v.id_venta}</code></td>
+        <td style="white-space:nowrap"><code>${v.id_venta}</code></td>
         <td>${fmtFecha(v.fecha_venta)}</td>
         <td>${v.cliente}</td>
-        <td><code>${v.codigo_cip}</code></td>
+        <td style="white-space:nowrap"><code>${v.codigo_cip}</code></td>
         <td>${fmt(v.precio_final)}</td>
         <td>${fmt(v.total_pagado)}</td>
         <td><strong>${fmt(v.saldo)}</strong></td>
@@ -1605,10 +1605,10 @@ async function generarReporte() {
             <tbody>
               ${todas.sort((a,b) => a.fecha_venta < b.fecha_venta ? 1 : -1).map(v => `
                 <tr>
-                  <td><code>${v.id_venta}</code></td>
+                  <td style="white-space:nowrap"><code>${v.id_venta}</code></td>
                   <td>${fmtFecha(v.fecha_venta)}</td>
                   <td>${v.cliente}</td>
-                  <td><code>${v.codigo_cip}</code></td>
+                  <td style="white-space:nowrap"><code>${v.codigo_cip}</code></td>
                   <td>${fmt(v.precio_final)}</td>
                   <td><span class="badge ${v.tipo_venta==='Contado'?'badge-ok':'badge-warn'}">${v.tipo_venta}</span></td>
                 </tr>
@@ -1817,10 +1817,10 @@ function vlRender() {
     } else {
       tbody.innerHTML = slice.map(v => `
         <tr style="${v.estado==='ANULADA'?'opacity:.5':''}">
-          <td><code>${v.id_venta}</code></td>
-          <td>${fmtFecha(v.fecha_venta)}</td>
+          <td style="white-space:nowrap"><code>${v.id_venta}</code></td>
+          <td style="white-space:nowrap">${fmtFecha(v.fecha_venta)}</td>
           <td><strong>${v.cliente}</strong></td>
-          <td><code>${v.codigo_cip}</code></td>
+          <td style="white-space:nowrap"><code>${v.codigo_cip}</code></td>
           <td style="font-size:11px;color:var(--g500)">${v.descripcion||'—'}</td>
           <td><strong>${fmt(v.precio_final)}</strong></td>
           <td style="color:var(--g500)">${v.ajuste_precio>0?'— '+fmt(v.ajuste_precio):'—'}</td>
