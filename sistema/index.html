@@ -1047,7 +1047,7 @@ async function cargarTablero() {
     const [resumen, catalogo, ventas] = await Promise.all([
       fetch(API + '/api/resumen').then(r => r.json()),
       fetch(API + '/api/catalogo').then(r => r.json()),
-      fetch(API + '/api/ventas/buscar?q=vta').then(r => r.json()).catch(() => ({resultados:[]}))
+      fetch(API + '/api/ventas/todas').then(r => r.json()).catch(() => ({ventas:[]}))
     ]);
 
     // KPI fila 1
@@ -1073,7 +1073,7 @@ async function cargarTablero() {
     document.getElementById('d-margen-sub').textContent = 'Total ingresos acumulados';
 
     // Últimas 5 ventas
-    const resultados = (ventas.resultados || []).slice(0, 5);
+    const resultados = (ventas.ventas || ventas.resultados || []).slice(0, 5);
     const ulDiv = document.getElementById('d-ultimas-ventas');
     if (resultados.length === 0) {
       ulDiv.innerHTML = '<p style="color:var(--g400);text-align:center;padding:16px">No hay ventas registradas aún</p>';
@@ -1306,7 +1306,7 @@ async function buscarVentaCredito() {
       const res = await fetch(`${API}/api/ventas/buscar?q=${encodeURIComponent(q)}`);
       const d = await res.json();
       const cont = document.getElementById('p-resultados');
-      const creditos = (d.resultados || []).filter(v => v.tipo_venta === 'Crédito');
+      const creditos = (d.ventas || d.resultados || []).filter(v => v.tipo_venta === 'Crédito');
       if (!creditos.length) {
         cont.innerHTML = '<p style="color:var(--g500);font-size:13px;padding:12px 0">No se encontraron ventas a crédito con ese criterio.</p>';
         return;
@@ -1488,7 +1488,7 @@ async function generarReporte() {
   try {
     const res = await fetch(`${API}/api/ventas/buscar?q=vta`);
     const d = await res.json();
-    const todas = (d.resultados || []).filter(v =>
+    const todas = (d.ventas || d.resultados || []).filter(v =>
       v.fecha_venta >= desde && v.fecha_venta <= hasta && v.estado !== 'ANULADA'
     );
 
