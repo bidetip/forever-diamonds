@@ -9,16 +9,51 @@ def get_conn():
     conn.row_factory = sqlite3.Row
     return conn
 
-def get_stock(codigo_cip):
+def init_db():
+    """Crea tablas nuevas si no existen (clientes)."""
     conn = get_conn()
     cur = conn.cursor()
-    compradas = cur.execute("SELECT COALESCE(SUM(cantidad),0) FROM compras WHERE codigo_cip=?", (codigo_cip,)).fetchone()[0]
-    vendidas = cur.execute("SELECT COUNT(*) FROM ventas WHERE codigo_cip=? AND estado='Activa'", (codigo_cip,)).fetchone()[0]
-    devueltas = cur.execute("SELECT COUNT(*) FROM devoluciones WHERE codigo_cip=? AND estado='Procesada'", (codigo_cip,)).fetchone()[0]
+    cur.execute('''CREATE TABLE IF NOT EXISTS clientes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre TEXT NOT NULL UNIQUE,
+        telefono TEXT DEFAULT '',
+        email TEXT DEFAULT '',
+        notas TEXT DEFAULT '',
+        fecha_registro DATE DEFAULT CURRENT_DATE,
+        total_compras INTEGER DEFAULT 0,
+        monto_total REAL DEFAULT 0
+    )''')
+    conn.commit()
+
+    # Poblar clientes desde ventas existentes
+    cur.execute("""
+        INSERT OR IGNORE INTO clientes (nombre)
+        SELECT DISTINCT cliente FROM ventas
+        WHERE cliente IS NOT NULL AND cliente != ''
+        ORDER BY cliente
+    """)
+    conn.commit()
+    conn.close()
+
+def get_stock(codigo_cip: str) -> int:
+    conn = get_conn()
+    cur = conn.cursor()
+    compradas = cur.execute(
+        "SELECT COALESCE(SUM(cantidad),0) FROM compras WHERE codigo_cip=?",
+        (codigo_cip,)
+    ).fetchone()[0]
+    vendidas = cur.execute(
+        "SELECT COUNT(*) FROM ventas WHERE codigo_cip=? AND estado='Activa'",
+        (codigo_cip,)
+    ).fetchone()[0]
+    devueltas = cur.execute(
+        "SELECT COUNT(*) FROM devoluciones WHERE codigo_cip=? AND estado='Procesada'",
+        (codigo_cip,)
+    ).fetchone()[0]
     conn.close()
     return int(compradas) - int(vendidas) + int(devueltas)
 
-def get_precio_venta(codigo_cip, fecha_venta):
+def get_precio_venta(codigo_cip: str, fecha_venta: str) -> dict:
     conn = get_conn()
     cur = conn.cursor()
     costo = cur.execute("""
@@ -28,7 +63,7 @@ def get_precio_venta(codigo_cip, fecha_venta):
     """, (codigo_cip,)).fetchone()
     if not costo:
         conn.close()
-        return {"error": "CIP no encontrado"}
+        return {"error": "CIP no encontrado en el catálogo"}
     costo_landed = round(costo['precio_neto'] * costo['factor_costo'], 2)
     factor_venta = cur.execute("""
         SELECT factor FROM factores_venta
@@ -39,38 +74,51 @@ def get_precio_venta(codigo_cip, fecha_venta):
         return {"error": "No hay factor de venta configurado"}
     precio_venta = round(costo_landed * factor_venta['factor'], 2)
     conn.close()
-    return {"codigo_cip": codigo_cip, "costo_landed": costo_landed, "factor_venta": factor_venta['factor'], "precio_venta": precio_venta}
+    return {
+        "codigo_cip":   codigo_cip,
+        "costo_landed": costo_landed,
+        "factor_venta": factor_venta['factor'],
+        "precio_venta": precio_venta
+    }
 
-def get_siguiente_id_venta():
+def get_siguiente_id_venta() -> str:
     conn = get_conn()
     cur = conn.cursor()
-    ultimo = cur.execute("SELECT id_venta FROM ventas ORDER BY id DESC LIMIT 1").fetchone()
+    ultimo = cur.execute(
+        "SELECT id_venta FROM ventas ORDER BY id DESC LIMIT 1"
+    ).fetchone()
     conn.close()
     if not ultimo:
         return "VTA-0001"
     num = int(ultimo['id_venta'].split('-')[1]) + 1
     return f"VTA-{num:04d}"
 
-def get_siguiente_id_pago():
+def get_siguiente_id_pago() -> str:
     conn = get_conn()
     cur = conn.cursor()
     total = cur.execute("SELECT COUNT(*) as total FROM pagos").fetchone()
     conn.close()
     return f"PAG-{(total['total'] or 0) + 1:04d}"
 
-def registrar_venta(datos):
+def registrar_venta(datos: dict) -> dict:
     conn = get_conn()
     cur = conn.cursor()
     try:
         id_venta = get_siguiente_id_venta()
         cur.execute("""
-            INSERT INTO ventas (id_venta,codigo_cip,descripcion,fecha_venta,cliente,
-            precio_venta,ajuste_precio,precio_final,metodo_pago,tipo_venta,vendedor,observaciones,costo_adq,estado)
+            INSERT INTO ventas
+            (id_venta,codigo_cip,descripcion,fecha_venta,cliente,
+             precio_venta,ajuste_precio,precio_final,metodo_pago,
+             tipo_venta,vendedor,observaciones,costo_adq,estado)
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-        """, (id_venta, datos['codigo_cip'], datos.get('descripcion',''), datos['fecha_venta'],
-              datos['cliente'], datos['precio_venta'], datos.get('ajuste_precio',0),
-              datos['precio_final'], datos['metodo_pago'], datos['tipo_venta'],
-              datos['vendedor'], datos.get('observaciones',''), datos.get('costo_adq',0), 'Activa'))
+        """, (
+            id_venta, datos['codigo_cip'], datos.get('descripcion',''),
+            datos['fecha_venta'], datos['cliente'],
+            datos['precio_venta'], datos.get('ajuste_precio',0),
+            datos['precio_final'], datos['metodo_pago'],
+            datos['tipo_venta'], datos['vendedor'],
+            datos.get('observaciones',''), datos.get('costo_adq',0), 'Activa'
+        ))
         conn.commit()
         return {"success": True, "id_venta": id_venta}
     except Exception as e:
@@ -79,19 +127,49 @@ def registrar_venta(datos):
     finally:
         conn.close()
 
-def get_saldo_venta(id_venta):
+def registrar_cliente_si_no_existe(nombre: str):
+    """Registra un cliente nuevo si no existe en la tabla."""
+    if not nombre or not nombre.strip():
+        return
     conn = get_conn()
     cur = conn.cursor()
-    venta = cur.execute("SELECT id_venta,cliente,precio_final,tipo_venta FROM ventas WHERE id_venta=?", (id_venta,)).fetchone()
+    try:
+        cur.execute(
+            "INSERT OR IGNORE INTO clientes (nombre) VALUES (?)",
+            (nombre.strip(),)
+        )
+        conn.commit()
+    except:
+        pass
+    finally:
+        conn.close()
+
+def get_saldo_venta(id_venta: str) -> dict:
+    conn = get_conn()
+    cur = conn.cursor()
+    venta = cur.execute(
+        "SELECT id_venta,cliente,precio_final,tipo_venta FROM ventas WHERE id_venta=?",
+        (id_venta,)
+    ).fetchone()
     if not venta:
         conn.close()
         return {"error": "Venta no encontrada"}
-    total_pagado = cur.execute("SELECT COALESCE(SUM(monto),0) FROM pagos WHERE id_venta=?", (id_venta,)).fetchone()[0]
+    total_pagado = cur.execute(
+        "SELECT COALESCE(SUM(monto),0) FROM pagos WHERE id_venta=?",
+        (id_venta,)
+    ).fetchone()[0]
     saldo = round(venta['precio_final'] - float(total_pagado), 2)
     conn.close()
-    return {"id_venta": venta['id_venta'], "cliente": venta['cliente'], "precio_final": venta['precio_final'], "total_pagado": round(float(total_pagado),2), "saldo": saldo, "pagado_completo": saldo <= 0}
+    return {
+        "id_venta":       venta['id_venta'],
+        "cliente":        venta['cliente'],
+        "precio_final":   venta['precio_final'],
+        "total_pagado":   round(float(total_pagado), 2),
+        "saldo":          saldo,
+        "pagado_completo": saldo <= 0
+    }
 
-def registrar_pago(datos):
+def registrar_pago(datos: dict) -> dict:
     conn = get_conn()
     cur = conn.cursor()
     try:
@@ -102,40 +180,60 @@ def registrar_pago(datos):
             return {"error": f"El monto supera el saldo pendiente (${saldo_info['saldo']:.2f})"}
         id_pago = get_siguiente_id_pago()
         cur.execute("""
-            INSERT INTO pagos (id_pago,id_venta,codigo_cip,cliente,fecha_pago,monto,metodo_pago,vendedor,notas)
+            INSERT INTO pagos
+            (id_pago,id_venta,codigo_cip,cliente,fecha_pago,monto,metodo_pago,vendedor,notas)
             VALUES (?,?,?,?,?,?,?,?,?)
-        """, (id_pago, datos['id_venta'], datos.get('codigo_cip',''), datos.get('cliente',''),
-              datos['fecha_pago'], datos['monto'], datos['metodo_pago'], datos['vendedor'], datos.get('notas','')))
+        """, (
+            id_pago, datos['id_venta'], datos.get('codigo_cip',''),
+            datos.get('cliente',''), datos['fecha_pago'],
+            datos['monto'], datos['metodo_pago'],
+            datos['vendedor'], datos.get('notas','')
+        ))
         conn.commit()
         nuevo_saldo = round(saldo_info['saldo'] - datos['monto'], 2)
-        return {"success": True, "id_pago": id_pago, "saldo_anterior": saldo_info['saldo'], "monto_pagado": datos['monto'], "nuevo_saldo": nuevo_saldo, "pagado_completo": nuevo_saldo <= 0}
+        return {
+            "success":        True,
+            "id_pago":        id_pago,
+            "saldo_anterior": saldo_info['saldo'],
+            "monto_pagado":   datos['monto'],
+            "nuevo_saldo":    nuevo_saldo,
+            "pagado_completo": nuevo_saldo <= 0
+        }
     except Exception as e:
         conn.rollback()
         return {"error": str(e)}
     finally:
         conn.close()
 
-def buscar_ventas(termino):
+def buscar_ventas(termino: str) -> list:
     conn = get_conn()
     cur = conn.cursor()
     t = f"%{termino.upper()}%"
     ventas = cur.execute("""
-        SELECT v.id_venta,v.codigo_cip,v.cliente,v.fecha_venta,v.precio_final,v.tipo_venta,v.estado,
+        SELECT v.id_venta,v.codigo_cip,v.cliente,v.fecha_venta,
+               v.precio_final,v.tipo_venta,v.estado,
                COALESCE(SUM(p.monto),0) as total_pagado
         FROM ventas v LEFT JOIN pagos p ON v.id_venta=p.id_venta
         WHERE UPPER(v.cliente) LIKE ? OR UPPER(v.codigo_cip) LIKE ?
+           OR UPPER(v.id_venta) LIKE ?
         GROUP BY v.id_venta ORDER BY v.fecha_venta DESC
-    """, (t,t)).fetchall()
+    """, (t, t, t)).fetchall()
     conn.close()
     return [dict(row) for row in ventas]
 
-def get_catalogo():
+def get_catalogo() -> list:
     conn = get_conn()
     cur = conn.cursor()
     productos = cur.execute("""
-        SELECT DISTINCT c.codigo_cip,c.descripcion,c.material,c.talla,c.proveedor,
+        SELECT DISTINCT c.codigo_cip, c.descripcion, c.material,
+               c.talla, c.proveedor, c.detalle_tecnico,
                SUM(c.cantidad) as unidades_compradas
-        FROM compras c GROUP BY c.codigo_cip ORDER BY c.codigo_cip
+        FROM compras c
+        GROUP BY c.codigo_cip
+        ORDER BY c.codigo_cip
     """).fetchall()
     conn.close()
     return [dict(row) for row in productos]
+
+# Inicializar tabla clientes al importar
+init_db()
