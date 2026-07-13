@@ -1044,20 +1044,16 @@ async function cargarTodo() {
 // ── DASHBOARD ─────────────────────────────────────────────
 async function cargarTablero() {
   try {
-    const [resumen, catalogo, ventas] = await Promise.all([
-      fetch(API + '/api/resumen').then(r => r.json()),
-      fetch(API + '/api/catalogo').then(r => r.json()),
-      fetch(API + '/api/ventas/todas').then(r => r.json()).catch(() => ({ventas:[]}))
-    ]);
-
-    // KPI fila 1
+    const resumen = await fetch(API + '/api/resumen').then(r => r.json());
     document.getElementById('d-nventas').textContent = resumen.total_ventas || 0;
     document.getElementById('d-monto').textContent = fmt(resumen.monto_ventas);
     document.getElementById('d-creditos').textContent = resumen.creditos_activos || 0;
     document.getElementById('d-creditos-sub').textContent = fmt(resumen.saldo_cxc) + ' pendiente';
     document.getElementById('d-cxc').textContent = fmt(resumen.saldo_cxc);
+    document.getElementById('d-ganancia').textContent = fmt(resumen.monto_ventas);
+    document.getElementById('d-margen-sub').textContent = 'Total ingresos acumulados';
 
-    // KPI fila 2 — calcular stock desde catálogo
+    const catalogo = await fetch(API + '/api/catalogo').then(r => r.json());
     inventarioData = catalogo;
     catalogoData = catalogo;
     const enStock = catalogo.filter(p => p.unidades_compradas > 0).length;
@@ -1066,52 +1062,37 @@ async function cargarTablero() {
     document.getElementById('d-en-stock').textContent = enStock;
     document.getElementById('d-agotados').textContent = agotados;
     document.getElementById('d-stock-sub').textContent = enStock + ' con unidades';
-
-    // Ganancia bruta aproximada (desde resumen)
-    const ganancia = resumen.monto_ventas - (resumen.monto_ventas * 0.56); // aprox
-    document.getElementById('d-ganancia').textContent = fmt(resumen.monto_ventas);
-    document.getElementById('d-margen-sub').textContent = 'Total ingresos acumulados';
-
-    // Últimas 5 ventas
-    const resultados = (ventas.ventas || ventas.resultados || []).slice(0, 5);
-    const ulDiv = document.getElementById('d-ultimas-ventas');
-    if (resultados.length === 0) {
-      ulDiv.innerHTML = '<p style="color:var(--g400);text-align:center;padding:16px">No hay ventas registradas aún</p>';
-    } else {
-      ulDiv.innerHTML = resultados.map(v => `
-        <div class="venta-item">
-          <div class="venta-info">
-            <div class="venta-cliente">${v.cliente}</div>
-            <div class="venta-cip"><code>${v.codigo_cip}</code> · ${v.tipo_venta}</div>
-          </div>
-          <div class="venta-right">
-            <div class="venta-monto">${fmt(v.precio_final)}</div>
-            <div class="venta-fecha">${fmtFecha(v.fecha_venta)}</div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // Alertas
-    const alertDiv = document.getElementById('d-alertas');
-    const alertas = [];
-    if (agotados > 0) alertas.push({ tipo: 'warn', ico: '📦', txt: `${agotados} producto(s) agotados`, sub: 'Considera hacer una nueva compra' });
-    if ((resumen.creditos_activos || 0) > 0) alertas.push({ tipo: 'warn', ico: '⏳', txt: `${resumen.creditos_activos} crédito(s) pendiente(s) de cobro`, sub: `Saldo total: ${fmt(resumen.saldo_cxc)}` });
-    if (alertas.length === 0) {
-      alertDiv.innerHTML = '<div style="text-align:center;padding:16px;color:var(--ok)">✅ Todo en orden — no hay alertas pendientes</div>';
-    } else {
-      alertDiv.innerHTML = alertas.map(a => `
-        <div class="alert-item ${a.tipo}">
-          <div class="alert-icon">${a.ico}</div>
-          <div><div class="alert-txt">${a.txt}</div><div class="alert-sub">${a.sub}</div></div>
-        </div>
-      `).join('');
-    }
-
     renderInventario();
 
+    const ventasData = await fetch(API + '/api/ventas/todas').then(r => r.json());
+    const ultimas = (ventasData.ventas || []).slice(0, 5);
+    const ulDiv = document.getElementById('d-ultimas-ventas');
+    if (!ultimas.length) {
+      ulDiv.innerHTML = '<p style="color:var(--g400);text-align:center;padding:16px">No hay ventas registradas</p>';
+    } else {
+      ulDiv.innerHTML = ultimas.map(v =>
+        '<div class="venta-item">' +
+        '<div class="venta-info">' +
+        '<div class="venta-cliente">' + v.cliente + '</div>' +
+        '<div class="venta-cip">' + v.codigo_cip + ' · ' + v.tipo_venta + '</div>' +
+        '</div>' +
+        '<div class="venta-right">' +
+        '<div class="venta-monto">' + fmt(v.precio_final) + '</div>' +
+        '<div class="venta-fecha">' + fmtFecha(v.fecha_venta) + '</div>' +
+        '</div></div>'
+      ).join('');
+    }
+
+    const alertDiv = document.getElementById('d-alertas');
+    const alertas = [];
+    if (agotados > 0) alertas.push({tipo:'warn',ico:'📦',txt:agotados+' producto(s) agotados',sub:'Considera hacer una nueva compra'});
+    if ((resumen.creditos_activos||0) > 0) alertas.push({tipo:'warn',ico:'⏳',txt:resumen.creditos_activos+' crédito(s) pendiente(s)',sub:'Saldo: '+fmt(resumen.saldo_cxc)});
+    alertDiv.innerHTML = alertas.length === 0
+      ? '<div style="text-align:center;padding:16px;color:var(--ok)">✅ Todo en orden</div>'
+      : alertas.map(a => '<div class="alert-item ' + a.tipo + '"><div class="alert-icon">' + a.ico + '</div><div><div class="alert-txt">' + a.txt + '</div><div class="alert-sub">' + a.sub + '</div></div></div>').join('');
+
   } catch(e) {
-    console.error('Error cargando dashboard:', e);
+    console.error('Error en tablero:', e);
   }
 }
 
