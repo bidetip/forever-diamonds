@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Forever Diamonds — Sistema</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --navy:#1F2D3D; --gold:#D9B36C; --gold-lt:#FDF3DC;
+  --white:#FFFFFF; --g50:#F8F8F6; --g200:#E5E3DE;
+  --g400:#B0ADA8; --g500:#8A8680; --err:#C0392B;
+  --ok:#1E6B45; --warn:#B7791F;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--g50);color:var(--navy);min-height:100vh}
+
+/* ── LOGIN ── */
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:20px}
+.login-card{background:var(--white);border-radius:20px;padding:40px 32px;width:100%;max-width:380px;text-align:center}
+.login-gem{font-size:48px;margin-bottom:12px}
+.login-title{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--navy);margin-bottom:4px}
+.login-sub{font-size:12px;color:var(--g500);letter-spacing:.15em;text-transform:uppercase;margin-bottom:28px}
+.login-field{margin-bottom:16px;text-align:left}
+.login-field label{display:block;font-size:11px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.login-field input{width:100%;padding:12px 14px;border:1.5px solid var(--g200);border-radius:8px;font-size:15px;font-family:'Inter',sans-serif;color:var(--navy)}
+.login-field input:focus{outline:none;border-color:var(--gold)}
+.login-btn{width:100%;padding:14px;background:var(--navy);color:var(--gold);border:none;border-radius:10px;font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;cursor:pointer;margin-top:8px}
+.login-error{color:var(--err);font-size:13px;margin-top:10px;display:none}
+
+/* ── APP LAYOUT ── */
+.app{display:none;min-height:100vh}
+.topbar{background:var(--navy);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-logo{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold);font-weight:600}
+.topbar-user{font-size:12px;color:rgba(217,179,108,.7)}
+.topbar-logout{background:none;border:1px solid rgba(217,179,108,.3);color:var(--gold);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer}
+
+/* ── NAV ── */
+.nav{background:var(--white);border-bottom:1px solid var(--g200);overflow-x:auto;white-space:nowrap;padding:0 16px}
+.nav-btn{display:inline-block;padding:12px 16px;font-size:12px;font-weight:600;color:var(--g500);cursor:pointer;border-bottom:3px solid transparent;text-transform:uppercase;letter-spacing:.08em}
+.nav-btn.active{color:var(--navy);border-bottom-color:var(--gold)}
+
+/* ── CONTENT ── */
+.content{padding:20px 16px 60px;max-width:900px;margin:0 auto}
+.panel{display:none}.panel.active{display:block}
+
+/* ── CARDS ── */
+.card{background:var(--white);border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid var(--g200)}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--navy);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--g200)}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+.stat{background:var(--white);border-radius:12px;padding:16px;border:1px solid var(--g200);text-align:center}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--navy)}
+.stat-label{font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.1em;margin-top:4px}
+
+/* ── FORM FIELDS ── */
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.lbl{display:block;font-size:11px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.req{color:var(--gold);margin-left:2px}
+input,select,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--g200);border-radius:8px;font-family:'Inter',sans-serif;font-size:15px;color:var(--navy);background:var(--white);-webkit-appearance:none;appearance:none}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(217,179,108,.12)}
+input.err,select.err{border-color:var(--err)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A8680' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px}
+textarea{resize:none;height:72px;font-size:14px}
+
+/* ── PRECIO CALCULADO ── */
+.precio-box{background:var(--gold-lt);border:1.5px solid var(--gold);border-radius:8px;padding:14px;margin:14px 0;display:none}
+.precio-box.show{display:block}
+.precio-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+.precio-row.total{font-weight:700;font-size:16px;border-top:1px solid var(--gold);padding-top:8px;margin-top:4px}
+
+/* ── BOTONES ── */
+.btn{width:100%;padding:14px;border:none;border-radius:10px;font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;cursor:pointer;margin-top:8px}
+.btn-primary{background:var(--navy);color:var(--gold)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.btn-secondary{background:var(--white);color:var(--navy);border:2px solid var(--navy)}
+
+/* ── TABLA ── */
+.tabla-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--navy);color:var(--white);padding:10px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+td{padding:10px 12px;border-bottom:1px solid var(--g200)}
+tr:hover td{background:var(--g50)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-ok{background:#D1FAE5;color:var(--ok)}
+.badge-warn{background:#FEF3C7;color:var(--warn)}
+.badge-err{background:#FEE2E2;color:var(--err)}
+
+/* ── BUSCADOR ── */
+.search-wrap{position:relative;margin-bottom:14px}
+.search-wrap input{padding-left:38px}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:15px;pointer-events:none}
+
+/* ── RESULTADO BUSQUEDA ── */
+.result-card{background:var(--white);border:1.5px solid var(--g200);border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer}
+.result-card:hover,.result-card.sel{border-color:var(--gold);background:var(--gold-lt)}
+.result-cip{font-size:11px;color:var(--g500);font-weight:600;letter-spacing:.08em}
+.result-cliente{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:6px}
+.result-row{display:flex;justify-content:space-between;font-size:12px;color:var(--g500);margin-bottom:2px}
+.result-row .val{font-weight:600;color:var(--navy)}
+
+/* ── SALDO DETALLE ── */
+.saldo-detail{display:none;background:var(--gold-lt);border:2px solid var(--gold);border-radius:12px;padding:18px;margin-bottom:14px}
+.saldo-detail.show{display:block}
+.saldo-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.saldo-row.total{font-weight:700;font-size:16px;border-top:1px solid var(--gold);padding-top:8px;margin-top:4px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);padding:13px 22px;border-radius:10px;font-size:14px;font-weight:500;z-index:200;transition:transform .3s;max-width:320px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.ok{background:var(--ok);color:var(--white)}
+.toast.er{background:var(--err);color:var(--white)}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(31,45,61,.8);z-index:150;display:none;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.show{display:flex}
+.modal{background:var(--white);border-radius:20px;padding:36px 28px;text-align:center;max-width:300px;width:100%}
+.modal .gem{font-size:56px;margin-bottom:12px}
+.modal h2{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--navy);margin-bottom:8px}
+.modal p{font-size:14px;color:var(--g500);margin-bottom:24px;line-height:1.5}
+
+@media(min-width:600px){
+  .stats{grid-template-columns:repeat(4,1fr)}
+  .content{padding:24px 24px 60px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-page" id="loginPage">
+  <div class="login-card">
+    <div class="login-gem">💎</div>
+    <div class="login-title">Forever Diamonds</div>
+    <div class="login-sub">Sistema de Gestión</div>
+    <div class="login-field">
+      <label>Usuario</label>
+      <input type="text" id="loginUser" placeholder="Tu nombre"/>
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">Ingresar</button>
+    <div class="login-error" id="loginError">Usuario o contraseña incorrectos</div>
+  </div>
+</div>
+
+<!-- MODAL PAGO COMPLETO -->
+<div class="modal-overlay" id="modalPago">
+  <div class="modal">
+    <div class="gem">🎉</div>
+    <h2>¡Pagado al 100%!</h2>
+    <p>La venta de <strong id="modalCliente"></strong> quedó completamente saldada.</p>
+    <button class="btn btn-primary" onclick="document.getElementById('modalPago').classList.remove('show')">Listo</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">💎 Forever Diamonds</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="topbar-user" id="topbarUser"></div>
+      <button class="topbar-logout" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <span class="nav-btn active" onclick="showPanel('dashboard')">Dashboard</span>
+    <span class="nav-btn" onclick="showPanel('nueva-venta')">Nueva Venta</span>
+    <span class="nav-btn" onclick="showPanel('pagos')">Pagos</span>
+    <span class="nav-btn" onclick="showPanel('inventario')">Inventario</span>
+    <span class="nav-btn" onclick="showPanel('cxc')">Créditos</span>
+    <span class="nav-btn" onclick="showPanel('compras')">Compras</span>
+    <span class="nav-btn" onclick="showPanel('reportes')">Reportes</span>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-num" id="d-ventas">—</div>
+          <div class="stat-label">Ventas Totales</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" id="d-monto">—</div>
+          <div class="stat-label">Monto Vendido</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" id="d-creditos">—</div>
+          <div class="stat-label">Créditos Activos</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" id="d-cxc">—</div>
+          <div class="stat-label">Saldo por Cobrar</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Bienvenido al Sistema Forever Diamonds</div>
+        <p style="color:var(--g500);font-size:14px;line-height:1.6">Selecciona una opción del menú superior para comenzar. Puedes registrar ventas, cobrar abonos, consultar el inventario y ver reportes.</p>
+      </div>
+    </div>
+
+    <!-- NUEVA VENTA -->
+    <div class="panel" id="panel-nueva-venta">
+      <div class="card">
+        <div class="card-title">🛍️ Registrar Nueva Venta</div>
+
+        <div class="field">
+          <label class="lbl">Código CIP <span class="req">*</span></label>
+          <input type="text" id="v-cip" placeholder="Ej: FD-AN-18KW-00447" autocapitalize="characters"
+            oninput="onCIPChange()"/>
+        </div>
+
+        <!-- Precio calculado automáticamente -->
+        <div class="precio-box" id="precio-box">
+          <div class="precio-row"><span>Costo Landed</span><span id="pb-costo">—</span></div>
+          <div class="precio-row"><span>Factor de Venta</span><span id="pb-factor">—</span></div>
+          <div class="precio-row"><span>Precio Venta</span><span id="pb-precio">—</span></div>
+          <div class="precio-row"><span>Ajuste</span><span id="pb-ajuste">— $0.00</span></div>
+          <div class="precio-row total"><span>Precio Final</span><span id="pb-final">—</span></div>
+          <div style="font-size:11px;color:var(--g500);margin-top:8px" id="pb-stock"></div>
+        </div>
+
+        <div class="field">
+          <label class="lbl">Fecha de Venta <span class="req">*</span></label>
+          <input type="date" id="v-fecha" onchange="calcularPrecio()"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Cliente <span class="req">*</span></label>
+          <input type="text" id="v-cliente" placeholder="Nombre completo"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Ajuste de Precio (USD)</label>
+          <input type="number" id="v-ajuste" placeholder="0.00" step="0.01" min="0" value="0"
+            oninput="actualizarFinal()"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Método de Pago <span class="req">*</span></label>
+          <select id="v-metodo">
+            <option value="">— Seleccionar —</option>
+            <option>Efectivo</option>
+            <option>Tarjeta Crédito</option>
+            <option>Tarjeta Débito</option>
+            <option>Transferencia</option>
+            <option>Nota de Crédito</option>
+            <option>Crédito</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Tipo de Venta <span class="req">*</span></label>
+          <select id="v-tipo">
+            <option value="">— Seleccionar —</option>
+            <option>Contado</option>
+            <option>Crédito</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Observaciones</label>
+          <textarea id="v-obs" placeholder="Notas adicionales..."></textarea>
+        </div>
+        <button class="btn btn-primary" id="btn-venta" onclick="registrarVenta()">Registrar Venta</button>
+      </div>
+    </div>
+
+    <!-- PAGOS -->
+    <div class="panel" id="panel-pagos">
+      <div class="card">
+        <div class="card-title">💰 Registrar Pago</div>
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="p-buscar" placeholder="Buscar por cliente o Código CIP"
+            oninput="buscarVenta()"/>
+        </div>
+        <div id="p-resultados"></div>
+      </div>
+      <div class="saldo-detail" id="saldo-detail">
+        <div class="card-title">Resumen de la Venta</div>
+        <div id="saldo-resumen"></div>
+        <div class="field" style="margin-top:14px">
+          <label class="lbl">Fecha del Pago <span class="req">*</span></label>
+          <input type="date" id="p-fecha"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Monto a Pagar (USD) <span class="req">*</span></label>
+          <input type="number" id="p-monto" placeholder="0.00" step="0.01" min="0.01"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Método de Pago <span class="req">*</span></label>
+          <select id="p-metodo">
+            <option value="">— Seleccionar —</option>
+            <option>Efectivo</option>
+            <option>Tarjeta Crédito</option>
+            <option>Tarjeta Débito</option>
+            <option>Transferencia</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Notas</label>
+          <textarea id="p-notas" placeholder="Referencia, número de transferencia..."></textarea>
+        </div>
+        <button class="btn btn-primary" id="btn-pago" onclick="registrarPago()">Registrar Pago</button>
+      </div>
+    </div>
+
+    <!-- INVENTARIO -->
+    <div class="panel" id="panel-inventario">
+      <div class="card">
+        <div class="card-title">📦 Inventario</div>
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="inv-buscar" placeholder="Buscar por CIP, descripción o material"
+            oninput="filtrarInventario()"/>
+        </div>
+        <div class="tabla-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Código CIP</th>
+                <th>Descripción</th>
+                <th>Material</th>
+                <th>Proveedor</th>
+                <th>Stock</th>
+              </tr>
+            </thead>
+            <tbody id="inv-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUENTAS POR COBRAR -->
+    <div class="panel" id="panel-cxc">
+      <div class="card">
+        <div class="card-title">📋 Créditos Pendientes</div>
+        <div class="tabla-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID Venta</th>
+                <th>Cliente</th>
+                <th>Precio Final</th>
+                <th>Pagado</th>
+                <th>Saldo</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="cxc-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPRAS -->
+    <div class="panel" id="panel-compras">
+      <div class="card">
+        <div class="card-title">📦 Registrar Nueva Compra</div>
+        <p style="color:var(--g500);font-size:13px;margin-bottom:16px">Registra las facturas de compra de tus proveedores aquí.</p>
+
+        <div class="field">
+          <label class="lbl">Proveedor <span class="req">*</span></label>
+          <select id="c-proveedor">
+            <option value="">— Seleccionar —</option>
+            <option>TAKA</option>
+            <option>JODI</option>
+            <option>KAYRA</option>
+            <option>SARRAF</option>
+            <option>NOBLE</option>
+            <option>CAMEX</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Número de Factura <span class="req">*</span></label>
+          <input type="text" id="c-factura" placeholder="Ej: INU07621"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Fecha de Compra <span class="req">*</span></label>
+          <input type="date" id="c-fecha"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Código Proveedor</label>
+          <input type="text" id="c-cod-prov" placeholder="Ej: DRK7742R01M18W"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Descripción <span class="req">*</span></label>
+          <input type="text" id="c-desc" placeholder="Ej: Anillo Oro Blanco Con Diamante"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Detalle Técnico</label>
+          <input type="text" id="c-detalle" placeholder="Ej: 83 RD D 0.635CT / 18W 3.72GM"/>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field">
+            <label class="lbl">Material</label>
+            <select id="c-material">
+              <option value="">—</option>
+              <option>18KY</option>
+              <option>18KW</option>
+              <option>18KR</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="lbl">Talla</label>
+            <input type="text" id="c-talla" placeholder="Ej: US#6.5"/>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div class="field">
+            <label class="lbl">Precio Lista</label>
+            <input type="number" id="c-lista" placeholder="0.00" step="0.01"/>
+          </div>
+          <div class="field">
+            <label class="lbl">Descuento</label>
+            <input type="number" id="c-descuento" placeholder="0.00" step="0.01" value="0"/>
+          </div>
+          <div class="field">
+            <label class="lbl">Cantidad</label>
+            <input type="number" id="c-cantidad" placeholder="1" min="1" value="1"/>
+          </div>
+        </div>
+        <div class="field">
+          <label class="lbl">Lote</label>
+          <select id="c-lote">
+            <option value="">— Seleccionar —</option>
+            <option>Lote 3</option>
+            <option>Lote 4</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="toast('Módulo de compras en desarrollo — próxima actualización','er')">Registrar Compra</button>
+      </div>
+    </div>
+
+    <!-- REPORTES -->
+    <div class="panel" id="panel-reportes">
+      <div class="card">
+        <div class="card-title">📊 Reportes</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <div class="field">
+            <label class="lbl">Desde</label>
+            <input type="date" id="r-desde"/>
+          </div>
+          <div class="field">
+            <label class="lbl">Hasta</label>
+            <input type="date" id="r-hasta"/>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="generarReporte()">Generar Reporte</button>
+        <div id="reporte-resultado" style="margin-top:20px"></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://forever-diamonds.onrender.com';
+const USERS = {
+  'miguel': '140587$',
+  'thalia': 'FAVAS2026$'
+};
+
+let currentUser = '';
+let ventaSeleccionada = null;
+let precioVentaActual = 0;
+let inventarioData = [];
+let buscarTimer = null;
+
+// ── LOGIN ────────────────────────────────────────────────────
+function doLogin() {
+  const user = document.getElementById('loginUser').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  if (USERS[user] && USERS[user] === pass) {
+    currentUser = user === 'miguel' ? 'Miguel' : 'Thalia';
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('topbarUser').textContent = currentUser;
+    document.getElementById('loginError').style.display = 'none';
+    document.getElementById('v-fecha').value = hoy();
+    document.getElementById('p-fecha').value = hoy();
+    cargarDashboard();
+    cargarInventario();
+    cargarCXC();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+
+function doLogout() {
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+// ── NAVEGACIÓN ────────────────────────────────────────────────
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function hoy() { return new Date().toISOString().split('T')[0]; }
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+async function cargarDashboard() {
+  try {
+    const res = await fetch(API + '/api/resumen');
+    const d = await res.json();
+    document.getElementById('d-ventas').textContent = d.total_ventas;
+    document.getElementById('d-monto').textContent = '$' + d.monto_ventas.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+    document.getElementById('d-creditos').textContent = d.creditos_activos || 0;
+    document.getElementById('d-cxc').textContent = '$' + (d.saldo_cxc || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  } catch(e) {}
+}
+
+// ── NUEVA VENTA ───────────────────────────────────────────────
+let cipTimer = null;
+function onCIPChange() {
+  clearTimeout(cipTimer);
+  cipTimer = setTimeout(calcularPrecio, 600);
+}
+
+async function calcularPrecio() {
+  const cip = document.getElementById('v-cip').value.trim();
+  const fecha = document.getElementById('v-fecha').value;
+  if (!cip || !fecha) return;
+  try {
+    const [precioRes, stockRes] = await Promise.all([
+      fetch(API + '/api/precio/' + encodeURIComponent(cip) + '?fecha=' + fecha),
+      fetch(API + '/api/stock/' + encodeURIComponent(cip))
+    ]);
+    const precio = await precioRes.json();
+    const stock = await stockRes.json();
+    if (precio.precio_venta) {
+      precioVentaActual = precio.precio_venta;
+      document.getElementById('pb-costo').textContent = '$' + precio.costo_landed.toFixed(2);
+      document.getElementById('pb-factor').textContent = precio.factor_venta + 'x';
+      document.getElementById('pb-precio').textContent = '$' + precio.precio_venta.toFixed(2);
+      document.getElementById('pb-stock').textContent = 'Stock disponible: ' + stock.stock_disponible + ' unidad(es)';
+      actualizarFinal();
+      document.getElementById('precio-box').classList.add('show');
+    }
+  } catch(e) {}
+}
+
+function actualizarFinal() {
+  const ajuste = parseFloat(document.getElementById('v-ajuste').value) || 0;
+  const final = precioVentaActual - ajuste;
+  document.getElementById('pb-ajuste').textContent = '— $' + ajuste.toFixed(2);
+  document.getElementById('pb-final').textContent = '$' + final.toFixed(2);
+}
+
+async function registrarVenta() {
+  const cip = document.getElementById('v-cip').value.trim();
+  const fecha = document.getElementById('v-fecha').value;
+  const cliente = document.getElementById('v-cliente').value.trim();
+  const metodo = document.getElementById('v-metodo').value;
+  const tipo = document.getElementById('v-tipo').value;
+  if (!cip || !fecha || !cliente || !metodo || !tipo) {
+    toast('Completa todos los campos obligatorios', 'er'); return;
+  }
+  const btn = document.getElementById('btn-venta');
+  btn.disabled = true; btn.textContent = 'Registrando...';
+  try {
+    const res = await fetch(API + '/api/ventas', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        codigo_cip: cip, fecha_venta: fecha, cliente,
+        ajuste_precio: parseFloat(document.getElementById('v-ajuste').value) || 0,
+        metodo_pago: metodo, tipo_venta: tipo, vendedor: currentUser,
+        observaciones: document.getElementById('v-obs').value.trim()
+      })
+    });
+    const d = await res.json();
+    if (res.ok) {
+      toast('✓ ' + d.mensaje, 'ok');
+      document.getElementById('v-cip').value = '';
+      document.getElementById('v-cliente').value = '';
+      document.getElementById('v-ajuste').value = '0';
+      document.getElementById('v-metodo').value = '';
+      document.getElementById('v-tipo').value = '';
+      document.getElementById('v-obs').value = '';
+      document.getElementById('precio-box').classList.remove('show');
+      precioVentaActual = 0;
+      cargarDashboard();
+    } else {
+      toast(d.detail || 'Error al registrar', 'er');
+    }
+  } catch(e) { toast('Sin conexión', 'er'); }
+  btn.disabled = false; btn.textContent = 'Registrar Venta';
+}
+
+// ── PAGOS ─────────────────────────────────────────────────────
+async function buscarVenta() {
+  clearTimeout(buscarTimer);
+  const q = document.getElementById('p-buscar').value.trim();
+  if (q.length < 2) {
+    document.getElementById('p-resultados').innerHTML = '';
+    document.getElementById('saldo-detail').classList.remove('show');
+    return;
+  }
+  buscarTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(API + '/api/ventas/buscar?q=' + encodeURIComponent(q));
+      const d = await res.json();
+      const cont = document.getElementById('p-resultados');
+      if (!d.resultados || !d.resultados.length) {
+        cont.innerHTML = '<p style="color:var(--g500);font-size:14px;padding:10px 0">No se encontraron ventas</p>';
+        return;
+      }
+      cont.innerHTML = d.resultados.map((v,i) => `
+        <div class="result-card" onclick="selVenta(${i})" data-idx="${i}">
+          <div class="result-cip">${v.codigo_cip}</div>
+          <div class="result-cliente">${v.cliente}</div>
+          <div class="result-row"><span>Precio Final</span><span class="val">$${v.precio_final.toFixed(2)}</span></div>
+          <div class="result-row"><span>Pagado</span><span class="val">$${v.total_pagado.toFixed(2)}</span></div>
+          <span class="badge ${v.pagado_completo ? 'badge-ok' : 'badge-warn'}">${v.pagado_completo ? '✓ Pagado' : 'Saldo: $' + v.saldo.toFixed(2)}</span>
+        </div>
+      `).join('');
+      window._resultados = d.resultados;
+    } catch(e) {}
+  }, 400);
+}
+
+function selVenta(idx) {
+  document.querySelectorAll('.result-card').forEach(c => c.classList.remove('sel'));
+  document.querySelectorAll('.result-card')[idx].classList.add('sel');
+  ventaSeleccionada = window._resultados[idx];
+  const v = ventaSeleccionada;
+  const saldo = v.saldo;
+  document.getElementById('saldo-resumen').innerHTML = `
+    <div class="saldo-row"><span>${v.codigo_cip}</span><span>${v.cliente}</span></div>
+    <div class="saldo-row"><span>Precio Final</span><span>$${v.precio_final.toFixed(2)}</span></div>
+    <div class="saldo-row"><span>Total Pagado</span><span>$${v.total_pagado.toFixed(2)}</span></div>
+    <div class="saldo-row total"><span>Saldo Pendiente</span><span style="color:${v.pagado_completo?'var(--ok)':'var(--warn)'}">$${saldo.toFixed(2)}</span></div>
+  `;
+  document.getElementById('p-monto').value = '';
+  document.getElementById('p-notas').value = '';
+  document.getElementById('btn-pago').disabled = v.pagado_completo;
+  document.getElementById('saldo-detail').classList.add('show');
+  setTimeout(() => document.getElementById('saldo-detail').scrollIntoView({behavior:'smooth'}), 100);
+}
+
+async function registrarPago() {
+  if (!ventaSeleccionada) { toast('Selecciona una venta primero', 'er'); return; }
+  const fecha = document.getElementById('p-fecha').value;
+  const monto = parseFloat(document.getElementById('p-monto').value);
+  const metodo = document.getElementById('p-metodo').value;
+  if (!fecha || !monto || !metodo) { toast('Completa todos los campos', 'er'); return; }
+  const btn = document.getElementById('btn-pago');
+  btn.disabled = true; btn.textContent = 'Registrando...';
+  try {
+    const res = await fetch(API + '/api/pagos', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        id_venta: ventaSeleccionada.id_venta,
+        codigo_cip: ventaSeleccionada.codigo_cip,
+        cliente: ventaSeleccionada.cliente,
+        fecha_pago: fecha, monto, metodo_pago: metodo,
+        vendedor: currentUser,
+        notas: document.getElementById('p-notas').value.trim()
+      })
+    });
+    const d = await res.json();
+    if (res.ok) {
+      if (d.pagado_completo) {
+        document.getElementById('modalCliente').textContent = ventaSeleccionada.cliente;
+        document.getElementById('modalPago').classList.add('show');
+      } else {
+        toast('✓ Pago registrado. Saldo: $' + d.nuevo_saldo.toFixed(2), 'ok');
+      }
+      ventaSeleccionada = null;
+      document.getElementById('saldo-detail').classList.remove('show');
+      document.getElementById('p-buscar').value = '';
+      document.getElementById('p-resultados').innerHTML = '';
+      cargarDashboard(); cargarCXC();
+    } else {
+      toast(d.detail || 'Error al registrar', 'er');
+    }
+  } catch(e) { toast('Sin conexión', 'er'); }
+  btn.disabled = false; btn.textContent = 'Registrar Pago';
+}
+
+// ── INVENTARIO ────────────────────────────────────────────────
+async function cargarInventario() {
+  try {
+    const res = await fetch(API + '/api/catalogo');
+    inventarioData = await res.json();
+    renderInventario(inventarioData);
+  } catch(e) {}
+}
+
+function renderInventario(data) {
+  document.getElementById('inv-tbody').innerHTML = data.map(p => `
+    <tr>
+      <td><code style="font-size:11px">${p.codigo_cip}</code></td>
+      <td>${p.descripcion || '—'}</td>
+      <td>${p.material || '—'}</td>
+      <td>${p.proveedor || '—'}</td>
+      <td><span class="badge ${p.unidades_compradas > 0 ? 'badge-ok' : 'badge-err'}">${p.unidades_compradas}</span></td>
+    </tr>
+  `).join('');
+}
+
+function filtrarInventario() {
+  const q = document.getElementById('inv-buscar').value.trim().toUpperCase();
+  if (!q) { renderInventario(inventarioData); return; }
+  renderInventario(inventarioData.filter(p =>
+    (p.codigo_cip||'').toUpperCase().includes(q) ||
+    (p.descripcion||'').toUpperCase().includes(q) ||
+    (p.material||'').toUpperCase().includes(q)
+  ));
+}
+
+// ── CXC ───────────────────────────────────────────────────────
+async function cargarCXC() {
+  try {
+    const res = await fetch(API + '/api/ventas/buscar?q=a');
+    const d = await res.json();
+    const creditos = (d.resultados || []).filter(v => v.tipo_venta === 'Crédito');
+    document.getElementById('cxc-tbody').innerHTML = creditos.map(v => `
+      <tr>
+        <td>${v.id_venta}</td>
+        <td>${v.cliente}</td>
+        <td>$${v.precio_final.toFixed(2)}</td>
+        <td>$${v.total_pagado.toFixed(2)}</td>
+        <td>$${v.saldo.toFixed(2)}</td>
+        <td><span class="badge ${v.pagado_completo ? 'badge-ok' : 'badge-warn'}">${v.pagado_completo ? 'Pagado' : 'Pendiente'}</span></td>
+      </tr>
+    `).join('');
+  } catch(e) {}
+}
+
+// ── REPORTES ──────────────────────────────────────────────────
+async function generarReporte() {
+  const desde = document.getElementById('r-desde').value;
+  const hasta = document.getElementById('r-hasta').value;
+  if (!desde || !hasta) { toast('Selecciona el rango de fechas', 'er'); return; }
+  try {
+    const res = await fetch(API + '/api/ventas/buscar?q=a');
+    const d = await res.json();
+    const ventas = (d.resultados || []).filter(v => v.fecha_venta >= desde && v.fecha_venta <= hasta);
+    const total = ventas.reduce((s,v) => s + v.precio_final, 0);
+    document.getElementById('reporte-resultado').innerHTML = `
+      <div class="stats">
+        <div class="stat"><div class="stat-num">${ventas.length}</div><div class="stat-label">Ventas en período</div></div>
+        <div class="stat"><div class="stat-num">$${total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div><div class="stat-label">Total vendido</div></div>
+      </div>
+      <div class="tabla-wrap"><table>
+        <thead><tr><th>ID</th><th>Fecha</th><th>Cliente</th><th>Precio Final</th><th>Tipo</th></tr></thead>
+        <tbody>${ventas.map(v=>`<tr><td>${v.id_venta}</td><td>${v.fecha_venta}</td><td>${v.cliente}</td><td>$${v.precio_final.toFixed(2)}</td><td>${v.tipo_venta}</td></tr>`).join('')}</tbody>
+      </table></div>
+    `;
+  } catch(e) { toast('Error al generar reporte', 'er'); }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function toast(msg, tipo) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + tipo + ' show';
+  setTimeout(() => el.className = 'toast', 4000);
+}
+</script>
+</body>
+</html>
