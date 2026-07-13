@@ -6,286 +6,625 @@
 <title>Forever Diamonds — Sistema</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
-:root {
-  --navy:#1F2D3D; --gold:#D9B36C; --gold-lt:#FDF3DC;
-  --white:#FFFFFF; --g50:#F8F8F6; --g200:#E5E3DE;
-  --g400:#B0ADA8; --g500:#8A8680; --err:#C0392B;
-  --ok:#1E6B45; --warn:#B7791F;
+/* ── VARIABLES ───────────────────────────────────────────── */
+:root{
+  --navy:#1F2D3D; --navy2:#162230;
+  --gold:#D9B36C; --gold-lt:#FDF3DC; --gold-dk:#B8922E;
+  --white:#FFFFFF; --g50:#F8F8F6; --g100:#F0EEE9;
+  --g200:#E5E3DE; --g300:#CBC8C2; --g400:#B0ADA8;
+  --g500:#8A8680; --g600:#6B6864;
+  --ok:#1E6B45; --ok-lt:#D6EAD6;
+  --err:#C0392B; --err-lt:#FAD7D7;
+  --warn:#B7791F; --warn-lt:#FEF3C7;
+  --info:#1A4F8A; --info-lt:#DCE9F7;
+  --radius:10px; --radius-lg:16px;
+  --shadow:0 2px 12px rgba(0,0,0,.08);
+  --shadow-md:0 4px 24px rgba(0,0,0,.12);
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:var(--g50);color:var(--navy);min-height:100vh}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--g50);color:var(--navy);min-height:100vh;font-size:14px}
 
-/* ── LOGIN ── */
-.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:20px}
-.login-card{background:var(--white);border-radius:20px;padding:40px 32px;width:100%;max-width:380px;text-align:center}
-.login-gem{font-size:48px;margin-bottom:12px}
-.login-title{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--navy);margin-bottom:4px}
-.login-sub{font-size:12px;color:var(--g500);letter-spacing:.15em;text-transform:uppercase;margin-bottom:28px}
+/* ── PANTALLA DE INICIO (servidor durmiendo) ─────────────── */
+#splash{
+  position:fixed;inset:0;background:var(--navy);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:1000;transition:opacity .5s;
+}
+#splash.fade{opacity:0;pointer-events:none}
+.splash-gem{font-size:64px;margin-bottom:16px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.splash-title{font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--gold);font-weight:700;letter-spacing:.05em;margin-bottom:6px}
+.splash-sub{font-size:12px;color:rgba(217,179,108,.6);letter-spacing:.2em;text-transform:uppercase;margin-bottom:40px}
+.splash-msg{font-size:13px;color:rgba(255,255,255,.7);margin-bottom:16px;text-align:center;max-width:280px;line-height:1.6}
+.splash-bar-wrap{width:240px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
+.splash-bar{height:100%;background:var(--gold);border-radius:2px;width:0%;transition:width .3s}
+.splash-pct{font-size:11px;color:rgba(217,179,108,.7);margin-top:8px}
+
+/* ── LOGIN ───────────────────────────────────────────────── */
+#loginPage{
+  min-height:100vh;display:none;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--navy) 0%,#2a3f55 100%);padding:20px;
+}
+.login-card{
+  background:var(--white);border-radius:var(--radius-lg);
+  padding:40px 32px;width:100%;max-width:380px;
+  box-shadow:var(--shadow-md);text-align:center;
+}
+.login-gem{font-size:52px;margin-bottom:14px}
+.login-brand{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.login-tagline{font-size:11px;color:var(--g500);letter-spacing:.2em;text-transform:uppercase;margin-bottom:32px}
 .login-field{margin-bottom:16px;text-align:left}
 .login-field label{display:block;font-size:11px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
-.login-field input{width:100%;padding:12px 14px;border:1.5px solid var(--g200);border-radius:8px;font-size:15px;font-family:'Inter',sans-serif;color:var(--navy)}
-.login-field input:focus{outline:none;border-color:var(--gold)}
-.login-btn{width:100%;padding:14px;background:var(--navy);color:var(--gold);border:none;border-radius:10px;font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;cursor:pointer;margin-top:8px}
-.login-error{color:var(--err);font-size:13px;margin-top:10px;display:none}
+.login-field input{
+  width:100%;padding:13px 16px;border:1.5px solid var(--g200);
+  border-radius:var(--radius);font-size:15px;font-family:'Inter',sans-serif;
+  color:var(--navy);background:var(--g50);transition:border-color .15s;
+}
+.login-field input:focus{outline:none;border-color:var(--gold);background:var(--white)}
+.login-btn{
+  width:100%;padding:15px;background:var(--navy);color:var(--gold);
+  border:none;border-radius:var(--radius);font-family:'Cormorant Garamond',serif;
+  font-size:19px;font-weight:600;cursor:pointer;margin-top:8px;
+  letter-spacing:.05em;transition:background .15s;
+}
+.login-btn:hover{background:var(--navy2)}
+.login-err{color:var(--err);font-size:13px;margin-top:12px;display:none;
+  background:var(--err-lt);padding:10px;border-radius:8px}
+.login-footer{font-size:11px;color:var(--g400);margin-top:20px}
 
-/* ── APP LAYOUT ── */
-.app{display:none;min-height:100vh}
-.topbar{background:var(--navy);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.topbar-logo{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold);font-weight:600}
-.topbar-user{font-size:12px;color:rgba(217,179,108,.7)}
-.topbar-logout{background:none;border:1px solid rgba(217,179,108,.3);color:var(--gold);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer}
+/* ── APP LAYOUT ──────────────────────────────────────────── */
+#app{display:none;min-height:100vh;flex-direction:column}
 
-/* ── NAV ── */
-.nav{background:var(--white);border-bottom:1px solid var(--g200);overflow-x:auto;white-space:nowrap;padding:0 16px}
-.nav-btn{display:inline-block;padding:12px 16px;font-size:12px;font-weight:600;color:var(--g500);cursor:pointer;border-bottom:3px solid transparent;text-transform:uppercase;letter-spacing:.08em}
-.nav-btn.active{color:var(--navy);border-bottom-color:var(--gold)}
+/* TOPBAR */
+.topbar{
+  background:var(--navy);padding:0 20px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.topbar-logo{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);font-weight:600;letter-spacing:.05em}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-user{font-size:12px;color:rgba(217,179,108,.7);display:none}
+.topbar-logout{
+  background:none;border:1px solid rgba(217,179,108,.3);color:var(--gold);
+  padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;
+  font-family:'Inter',sans-serif;transition:all .15s;
+}
+.topbar-logout:hover{background:rgba(217,179,108,.1)}
 
-/* ── CONTENT ── */
-.content{padding:20px 16px 60px;max-width:900px;margin:0 auto}
+/* NAV DESKTOP */
+.nav-desktop{
+  background:var(--white);border-bottom:2px solid var(--g200);
+  overflow-x:auto;white-space:nowrap;padding:0 20px;
+  display:flex;
+}
+.nav-desktop::-webkit-scrollbar{height:3px}
+.nav-desktop::-webkit-scrollbar-thumb{background:var(--g300);border-radius:2px}
+.nav-item{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:14px 16px;font-size:12px;font-weight:600;
+  color:var(--g500);cursor:pointer;
+  border-bottom:3px solid transparent;margin-bottom:-2px;
+  text-transform:uppercase;letter-spacing:.08em;
+  transition:all .15s;white-space:nowrap;
+}
+.nav-item:hover{color:var(--navy)}
+.nav-item.active{color:var(--navy);border-bottom-color:var(--gold)}
+.nav-item .icon{font-size:15px}
+
+/* CONTENT */
+.content{padding:20px 16px 80px;max-width:1100px;margin:0 auto;flex:1}
 .panel{display:none}.panel.active{display:block}
 
-/* ── CARDS ── */
-.card{background:var(--white);border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid var(--g200)}
-.card-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--navy);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--g200)}
+/* ── COMPONENTES BASE ────────────────────────────────────── */
+/* Cards */
+.card{background:var(--white);border-radius:var(--radius);padding:20px;margin-bottom:16px;border:1px solid var(--g200);box-shadow:var(--shadow)}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--navy);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:8px}
 
-/* ── STATS ── */
-.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
-.stat{background:var(--white);border-radius:12px;padding:16px;border:1px solid var(--g200);text-align:center}
-.stat-num{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--navy)}
-.stat-label{font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.1em;margin-top:4px}
+/* KPI Cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:var(--white);border-radius:var(--radius);padding:16px;border:1px solid var(--g200);box-shadow:var(--shadow);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.k-gold::before{background:var(--gold)}
+.kpi.k-ok::before{background:var(--ok)}
+.kpi.k-err::before{background:var(--err)}
+.kpi.k-info::before{background:var(--info)}
+.kpi.k-warn::before{background:var(--warn)}
+.kpi.k-purple::before{background:#7B2D8B}
+.kpi-icon{font-size:24px;margin-bottom:8px}
+.kpi-val{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--navy);line-height:1.1}
+.kpi-label{font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.1em;margin-top:4px}
+.kpi-sub{font-size:11px;color:var(--g400);margin-top:2px}
 
-/* ── FORM FIELDS ── */
+/* Fields */
 .field{margin-bottom:14px}
 .field:last-child{margin-bottom:0}
 .lbl{display:block;font-size:11px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
 .req{color:var(--gold);margin-left:2px}
-input,select,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--g200);border-radius:8px;font-family:'Inter',sans-serif;font-size:15px;color:var(--navy);background:var(--white);-webkit-appearance:none;appearance:none}
+input,select,textarea{
+  width:100%;padding:11px 13px;border:1.5px solid var(--g200);
+  border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;
+  color:var(--navy);background:var(--white);transition:all .15s;
+  -webkit-appearance:none;appearance:none;
+}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(217,179,108,.12)}
-input.err,select.err{border-color:var(--err)}
-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A8680' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px}
-textarea{resize:none;height:72px;font-size:14px}
+input.err,select.err{border-color:var(--err);background:var(--err-lt)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A8680' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+textarea{resize:vertical;min-height:72px;font-size:14px}
 
-/* ── PRECIO CALCULADO ── */
-.precio-box{background:var(--gold-lt);border:1.5px solid var(--gold);border-radius:8px;padding:14px;margin:14px 0;display:none}
-.precio-box.show{display:block}
-.precio-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
-.precio-row.total{font-weight:700;font-size:16px;border-top:1px solid var(--gold);padding-top:8px;margin-top:4px}
-
-/* ── BOTONES ── */
-.btn{width:100%;padding:14px;border:none;border-radius:10px;font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;cursor:pointer;margin-top:8px}
+/* Botones */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 20px;border:none;border-radius:var(--radius);
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .15s;
+}
 .btn-primary{background:var(--navy);color:var(--gold)}
+.btn-primary:hover{background:var(--navy2)}
 .btn-primary:disabled{opacity:.6;cursor:not-allowed}
 .btn-secondary{background:var(--white);color:var(--navy);border:2px solid var(--navy)}
+.btn-danger{background:var(--err);color:var(--white)}
+.btn-success{background:var(--ok);color:var(--white)}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.btn-full{width:100%}
+.btn-sm{padding:8px 14px;font-size:12px}
 
-/* ── TABLA ── */
-.tabla-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{background:var(--navy);color:var(--white);padding:10px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
-td{padding:10px 12px;border-bottom:1px solid var(--g200)}
-tr:hover td{background:var(--g50)}
-.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
-.badge-ok{background:#D1FAE5;color:var(--ok)}
-.badge-warn{background:#FEF3C7;color:var(--warn)}
-.badge-err{background:#FEE2E2;color:var(--err)}
+/* Tablas */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--g200)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:500px}
+thead th{background:var(--navy);color:var(--white);padding:11px 14px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--g100);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--g50)}
+code{font-family:'Courier New',monospace;font-size:11px;background:var(--g100);padding:2px 6px;border-radius:4px;color:var(--navy2)}
 
-/* ── BUSCADOR ── */
+/* Badges */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-ok{background:var(--ok-lt);color:var(--ok)}
+.badge-err{background:var(--err-lt);color:var(--err)}
+.badge-warn{background:var(--warn-lt);color:var(--warn)}
+.badge-info{background:var(--info-lt);color:var(--info)}
+.badge-gray{background:var(--g100);color:var(--g600)}
+
+/* Paginación */
+.paginacion{display:flex;align-items:center;justify-content:space-between;padding:12px 0;font-size:13px;color:var(--g500)}
+.pag-btns{display:flex;gap:6px}
+.pag-btn{padding:6px 12px;border:1px solid var(--g200);border-radius:6px;background:var(--white);cursor:pointer;font-size:12px;color:var(--navy)}
+.pag-btn.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
+.pag-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Search */
 .search-wrap{position:relative;margin-bottom:14px}
 .search-wrap input{padding-left:38px}
-.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:15px;pointer-events:none}
+.search-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:16px;pointer-events:none}
 
-/* ── RESULTADO BUSQUEDA ── */
-.result-card{background:var(--white);border:1.5px solid var(--g200);border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer}
-.result-card:hover,.result-card.sel{border-color:var(--gold);background:var(--gold-lt)}
-.result-cip{font-size:11px;color:var(--g500);font-weight:600;letter-spacing:.08em}
-.result-cliente{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:6px}
-.result-row{display:flex;justify-content:space-between;font-size:12px;color:var(--g500);margin-bottom:2px}
-.result-row .val{font-weight:600;color:var(--navy)}
+/* Precio calculado */
+.precio-preview{background:var(--gold-lt);border:1.5px solid var(--gold);border-radius:var(--radius);padding:16px;margin:14px 0;display:none}
+.precio-preview.show{display:block}
+.precio-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:3px 0}
+.precio-row.sep{border-top:1px solid var(--gold);margin-top:6px;padding-top:8px;font-weight:700;font-size:15px}
+.precio-row .lbl2{color:var(--g600)}
+.precio-row .val2{font-weight:600;color:var(--navy)}
+.stock-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;margin-top:8px;padding:4px 10px;border-radius:20px}
+.stock-chip.ok{background:var(--ok-lt);color:var(--ok)}
+.stock-chip.err{background:var(--err-lt);color:var(--err)}
 
-/* ── SALDO DETALLE ── */
-.saldo-detail{display:none;background:var(--gold-lt);border:2px solid var(--gold);border-radius:12px;padding:18px;margin-bottom:14px}
-.saldo-detail.show{display:block}
-.saldo-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
-.saldo-row.total{font-weight:700;font-size:16px;border-top:1px solid var(--gold);padding-top:8px;margin-top:4px}
-
-/* ── TOAST ── */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);padding:13px 22px;border-radius:10px;font-size:14px;font-weight:500;z-index:200;transition:transform .3s;max-width:320px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(120px);
+  padding:14px 24px;border-radius:var(--radius);font-size:14px;font-weight:500;
+  z-index:500;transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  max-width:340px;text-align:center;box-shadow:var(--shadow-md);
+  pointer-events:none;
+}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.ok{background:var(--ok);color:var(--white)}
 .toast.er{background:var(--err);color:var(--white)}
+.toast.warn{background:var(--warn);color:var(--white)}
 
-/* ── MODAL ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(31,45,61,.8);z-index:150;display:none;align-items:center;justify-content:center;padding:24px}
-.modal-overlay.show{display:flex}
-.modal{background:var(--white);border-radius:20px;padding:36px 28px;text-align:center;max-width:300px;width:100%}
-.modal .gem{font-size:56px;margin-bottom:12px}
-.modal h2{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--navy);margin-bottom:8px}
-.modal p{font-size:14px;color:var(--g500);margin-bottom:24px;line-height:1.5}
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(31,45,61,.75);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+.modal-bg.show{display:flex}
+.modal{background:var(--white);border-radius:var(--radius-lg);padding:32px 28px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--navy);margin-bottom:20px}
+.modal-celebration{text-align:center;padding:8px 0}
+.modal-celebration .big{font-size:64px;margin-bottom:12px}
+.modal-celebration h2{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--navy);margin-bottom:8px}
+.modal-celebration p{font-size:14px;color:var(--g500);line-height:1.6;margin-bottom:24px}
 
+/* Gráficos */
+.chart-container{width:100%;overflow-x:auto}
+svg.chart{display:block;width:100%;height:180px}
+
+/* Alertas dashboard */
+.alert-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:8px;margin-bottom:8px;background:var(--err-lt);border-left:3px solid var(--err)}
+.alert-item.warn{background:var(--warn-lt);border-left-color:var(--warn)}
+.alert-item .alert-icon{font-size:18px;flex-shrink:0}
+.alert-item .alert-txt{font-size:13px;color:var(--navy)}
+.alert-item .alert-sub{font-size:11px;color:var(--g500);margin-top:2px}
+
+/* Resultado búsqueda */
+.result-card{background:var(--white);border:1.5px solid var(--g200);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;transition:all .15s}
+.result-card:hover,.result-card.sel{border-color:var(--gold);background:var(--gold-lt)}
+.result-cip{font-size:11px;color:var(--g500);font-weight:600;letter-spacing:.08em;margin-bottom:2px}
+.result-name{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:8px}
+.result-row{display:flex;justify-content:space-between;font-size:12px;color:var(--g500);margin-bottom:3px}
+.result-row .rv{font-weight:600;color:var(--navy)}
+
+/* Saldo detalle */
+.saldo-box{display:none;background:var(--gold-lt);border:2px solid var(--gold);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+.saldo-box.show{display:block}
+.saldo-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.saldo-total{font-weight:700;font-size:16px;border-top:1px solid var(--gold);margin-top:8px;padding-top:10px}
+
+/* Grid de 2 columnas */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+/* Últimas ventas */
+.venta-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--g100)}
+.venta-item:last-child{border-bottom:none}
+.venta-info .venta-cliente{font-size:14px;font-weight:600;color:var(--navy)}
+.venta-info .venta-cip{font-size:11px;color:var(--g500);margin-top:2px}
+.venta-right{text-align:right}
+.venta-right .venta-monto{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:var(--navy)}
+.venta-right .venta-fecha{font-size:11px;color:var(--g500);margin-top:2px}
+
+/* Responsive */
 @media(min-width:600px){
-  .stats{grid-template-columns:repeat(4,1fr)}
-  .content{padding:24px 24px 60px}
+  .kpi-grid{grid-template-columns:repeat(4,1fr)}
+  .topbar-user{display:block}
+  .content{padding:24px 24px 40px}
 }
+@media(min-width:900px){
+  .kpi-grid{grid-template-columns:repeat(4,1fr)}
+}
+/* ── ESTILOS MÓDULO VENTAS ──────────────────────────────── */
+.filtros-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.filtros-bar input,.filtros-bar select{width:auto;flex:1;min-width:120px;padding:9px 12px;font-size:13px}
+.filtros-rapidos{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.filtro-btn{padding:6px 14px;border:1.5px solid var(--g200);border-radius:20px;background:var(--white);font-size:12px;font-weight:600;color:var(--g500);cursor:pointer;transition:all .15s}
+.filtro-btn.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
+.resumen-bar{display:flex;gap:16px;flex-wrap:wrap;padding:12px 16px;background:var(--gold-lt);border:1px solid var(--gold);border-radius:var(--radius);margin-bottom:14px}
+.resumen-bar .rb-item{display:flex;flex-direction:column;gap:2px}
+.resumen-bar .rb-val{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--navy)}
+.resumen-bar .rb-lbl{font-size:10px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em}
+.venta-desktop{display:none}
+.venta-mobile{display:block}
+@media(min-width:768px){.venta-desktop{display:table}.venta-mobile{display:none}}
+.vcard{background:var(--white);border:1px solid var(--g200);border-radius:var(--radius);padding:14px;margin-bottom:10px;border-left:4px solid var(--g200)}
+.vcard.contado{border-left-color:var(--ok)}
+.vcard.credito{border-left-color:var(--warn)}
+.vcard.anulada{border-left-color:var(--err);opacity:.6}
+.vcard-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.vcard-id{font-size:11px;font-weight:700;color:var(--g500);letter-spacing:.08em}
+.vcard-fecha{font-size:11px;color:var(--g400)}
+.vcard-cliente{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.vcard-cip{font-size:11px;color:var(--g500);margin-bottom:8px}
+.vcard-bottom{display:flex;justify-content:space-between;align-items:center}
+.vcard-precio{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--navy)}
+.vcard-saldo-pend{font-size:12px;font-weight:600;color:var(--warn)}
+.vcard-saldo-ok{font-size:12px;font-weight:600;color:var(--ok)}
+
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div class="login-page" id="loginPage">
+<!-- ── SPLASH ───────────────────────────────────────────── -->
+<div id="splash">
+  <div class="splash-gem">💎</div>
+  <div class="splash-title">Forever Diamonds</div>
+  <div class="splash-sub">Sistema de Gestión</div>
+  <div class="splash-msg" id="splashMsg">Conectando con el servidor...<br>Esto puede tomar hasta 50 segundos si el sistema estuvo inactivo.</div>
+  <div class="splash-bar-wrap">
+    <div class="splash-bar" id="splashBar"></div>
+  </div>
+  <div class="splash-pct" id="splashPct">0%</div>
+</div>
+
+<!-- ── LOGIN ────────────────────────────────────────────── -->
+<div id="loginPage" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy) 0%,#2a3f55 100%);padding:20px">
   <div class="login-card">
     <div class="login-gem">💎</div>
-    <div class="login-title">Forever Diamonds</div>
-    <div class="login-sub">Sistema de Gestión</div>
+    <div class="login-brand">Forever Diamonds</div>
+    <div class="login-tagline">Sistema de Gestión</div>
     <div class="login-field">
       <label>Usuario</label>
-      <input type="text" id="loginUser" placeholder="Tu nombre"/>
+      <input type="text" id="lu" placeholder="Tu nombre" autocomplete="username"/>
     </div>
     <div class="login-field">
       <label>Contraseña</label>
-      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+      <input type="password" id="lp" placeholder="••••••••" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')doLogin()"/>
     </div>
-    <button class="login-btn" onclick="doLogin()">Ingresar</button>
-    <div class="login-error" id="loginError">Usuario o contraseña incorrectos</div>
+    <button class="login-btn" onclick="doLogin()">Ingresar al Sistema</button>
+    <div class="login-err" id="loginErr">Usuario o contraseña incorrectos</div>
+    <div class="login-footer">Forever Diamonds © 2026</div>
   </div>
 </div>
 
-<!-- MODAL PAGO COMPLETO -->
-<div class="modal-overlay" id="modalPago">
+<!-- ── MODAL PAGO COMPLETO ───────────────────────────────── -->
+<div class="modal-bg" id="modalCelebracion">
   <div class="modal">
-    <div class="gem">🎉</div>
-    <h2>¡Pagado al 100%!</h2>
-    <p>La venta de <strong id="modalCliente"></strong> quedó completamente saldada.</p>
-    <button class="btn btn-primary" onclick="document.getElementById('modalPago').classList.remove('show')">Listo</button>
+    <div class="modal-celebration">
+      <div class="big">🎉</div>
+      <h2>¡Pagado al 100%!</h2>
+      <p>La venta de <strong id="celebCliente"></strong> quedó completamente saldada.<br>El saldo es <strong>$0.00</strong>.</p>
+      <button class="btn btn-primary btn-full" onclick="cerrarModal('modalCelebracion')">Perfecto</button>
+    </div>
   </div>
 </div>
 
-<!-- APP -->
-<div class="app" id="app">
+<!-- ── APP ───────────────────────────────────────────────── -->
+<div id="app" style="display:none;flex-direction:column;min-height:100vh">
 
   <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-logo">💎 Forever Diamonds</div>
-    <div style="display:flex;align-items:center;gap:12px">
+    <div class="topbar-left">
+      <div class="topbar-logo">💎 Forever Diamonds</div>
+    </div>
+    <div class="topbar-right">
       <div class="topbar-user" id="topbarUser"></div>
       <button class="topbar-logout" onclick="doLogout()">Salir</button>
     </div>
   </div>
 
   <!-- NAV -->
-  <div class="nav">
-    <span class="nav-btn active" onclick="showPanel('dashboard')">Dashboard</span>
-    <span class="nav-btn" onclick="showPanel('nueva-venta')">Nueva Venta</span>
-    <span class="nav-btn" onclick="showPanel('pagos')">Pagos</span>
-    <span class="nav-btn" onclick="showPanel('inventario')">Inventario</span>
-    <span class="nav-btn" onclick="showPanel('cxc')">Créditos</span>
-    <span class="nav-btn" onclick="showPanel('compras')">Compras</span>
-    <span class="nav-btn" onclick="showPanel('reportes')">Reportes</span>
+  <div class="nav-desktop" id="navDesktop">
+    <div class="nav-item active" onclick="showPanel('dashboard',this)"><span class="icon">📊</span>Dashboard</div>
+    <div class="nav-item" onclick="showPanel('ventas-lista',this);cargarListaVentas()"><span class="icon">📋</span>Ventas</div>
+    <div class="nav-item" onclick="showPanel('ventas',this)"><span class="icon">🛍️</span>Nueva Venta</div>
+    <div class="nav-item" onclick="showPanel('pagos',this)"><span class="icon">💰</span>Registrar Pago</div>
+    <div class="nav-item" onclick="showPanel('inventario',this)"><span class="icon">📦</span>Inventario</div>
+    <div class="nav-item" onclick="showPanel('cxc',this)"><span class="icon">📋</span>Créditos</div>
+    <div class="nav-item" onclick="showPanel('compras',this)"><span class="icon">🧾</span>Compras</div>
+    <div class="nav-item" onclick="showPanel('devoluciones',this)"><span class="icon">↩️</span>Devoluciones</div>
+    <div class="nav-item" onclick="showPanel('reportes',this)"><span class="icon">📈</span>Reportes</div>
+    <div class="nav-item" onclick="showPanel('auditoria',this)"><span class="icon">🔍</span>Auditoría</div>
   </div>
 
   <div class="content">
 
-    <!-- DASHBOARD -->
+    <!-- ══ DASHBOARD ══════════════════════════════════════ -->
     <div class="panel active" id="panel-dashboard">
-      <div class="stats">
-        <div class="stat">
-          <div class="stat-num" id="d-ventas">—</div>
-          <div class="stat-label">Ventas Totales</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num" id="d-monto">—</div>
-          <div class="stat-label">Monto Vendido</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num" id="d-creditos">—</div>
-          <div class="stat-label">Créditos Activos</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num" id="d-cxc">—</div>
-          <div class="stat-label">Saldo por Cobrar</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Bienvenido al Sistema Forever Diamonds</div>
-        <p style="color:var(--g500);font-size:14px;line-height:1.6">Selecciona una opción del menú superior para comenzar. Puedes registrar ventas, cobrar abonos, consultar el inventario y ver reportes.</p>
-      </div>
-    </div>
 
-    <!-- NUEVA VENTA -->
-    <div class="panel" id="panel-nueva-venta">
+      <!-- KPIs fila 1 -->
+      <div class="kpi-grid">
+        <div class="kpi k-gold">
+          <div class="kpi-icon">🛍️</div>
+          <div class="kpi-val" id="d-nventas">—</div>
+          <div class="kpi-label">Ventas Totales</div>
+          <div class="kpi-sub" id="d-nventas-sub"></div>
+        </div>
+        <div class="kpi k-ok">
+          <div class="kpi-icon">💵</div>
+          <div class="kpi-val" id="d-monto">—</div>
+          <div class="kpi-label">Monto Vendido</div>
+          <div class="kpi-sub">Precio final acumulado</div>
+        </div>
+        <div class="kpi k-info">
+          <div class="kpi-icon">📋</div>
+          <div class="kpi-val" id="d-creditos">—</div>
+          <div class="kpi-label">Créditos Activos</div>
+          <div class="kpi-sub" id="d-creditos-sub"></div>
+        </div>
+        <div class="kpi k-warn">
+          <div class="kpi-icon">⏳</div>
+          <div class="kpi-val" id="d-cxc">—</div>
+          <div class="kpi-label">Saldo por Cobrar</div>
+          <div class="kpi-sub">Pendiente de pago</div>
+        </div>
+      </div>
+
+      <!-- KPIs fila 2 -->
+      <div class="kpi-grid">
+        <div class="kpi k-info">
+          <div class="kpi-icon">📦</div>
+          <div class="kpi-val" id="d-productos">—</div>
+          <div class="kpi-label">Modelos en Catálogo</div>
+          <div class="kpi-sub" id="d-stock-sub"></div>
+        </div>
+        <div class="kpi k-ok">
+          <div class="kpi-icon">✅</div>
+          <div class="kpi-val" id="d-en-stock">—</div>
+          <div class="kpi-label">Con Stock Disponible</div>
+          <div class="kpi-sub">Listos para vender</div>
+        </div>
+        <div class="kpi k-err">
+          <div class="kpi-icon">⚠️</div>
+          <div class="kpi-val" id="d-agotados">—</div>
+          <div class="kpi-label">Agotados</div>
+          <div class="kpi-sub">Stock = 0</div>
+        </div>
+        <div class="kpi k-gold">
+          <div class="kpi-icon">💎</div>
+          <div class="kpi-val" id="d-ganancia">—</div>
+          <div class="kpi-label">Ganancia Bruta</div>
+          <div class="kpi-sub" id="d-margen-sub"></div>
+        </div>
+      </div>
+
+      <!-- Gráfico de ventas + Últimas ventas -->
+      <div style="display:grid;grid-template-columns:1fr;gap:16px">
+
+        <!-- Últimas ventas -->
+        <div class="card">
+          <div class="card-title">🕐 Últimas Ventas Registradas</div>
+          <div id="d-ultimas-ventas">
+            <div style="text-align:center;padding:20px;color:var(--g400)">Cargando...</div>
+          </div>
+        </div>
+
+        <!-- Alertas -->
+        <div class="card" id="d-alertas-card">
+          <div class="card-title">🚨 Alertas del Sistema</div>
+          <div id="d-alertas">
+            <div style="text-align:center;padding:20px;color:var(--g400)">Verificando...</div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /dashboard -->
+
+    <!-- ══ PANEL: LISTA DE VENTAS ══════════════════════════════ -->
+<div class="panel" id="panel-ventas-lista">
+
+  <!-- KPIs rápidos -->
+  <div class="resumen-bar">
+    <div class="rb-item"><div class="rb-val" id="vl-total">—</div><div class="rb-lbl">Total Ventas</div></div>
+    <div class="rb-item"><div class="rb-val" id="vl-monto">—</div><div class="rb-lbl">Monto Total</div></div>
+    <div class="rb-item"><div class="rb-val" id="vl-contado-n">—</div><div class="rb-lbl">Contado</div></div>
+    <div class="rb-item"><div class="rb-val" id="vl-credito-n">—</div><div class="rb-lbl">Crédito</div></div>
+    <div class="rb-item"><div class="rb-val" id="vl-saldo">—</div><div class="rb-lbl">Saldo Pendiente</div></div>
+  </div>
+
+  <!-- Filtros rápidos -->
+  <div class="filtros-rapidos">
+    <button class="filtro-btn active" onclick="vlFiltroRapido('todo',this)">Todas</button>
+    <button class="filtro-btn" onclick="vlFiltroRapido('hoy',this)">Hoy</button>
+    <button class="filtro-btn" onclick="vlFiltroRapido('semana',this)">Esta semana</button>
+    <button class="filtro-btn" onclick="vlFiltroRapido('mes',this)">Este mes</button>
+    <button class="filtro-btn" onclick="vlFiltroRapido('contado',this)">Solo Contado</button>
+    <button class="filtro-btn" onclick="vlFiltroRapido('credito',this)">Solo Crédito</button>
+    <button class="filtro-btn" onclick="vlFiltroRapido('pendiente',this)">Con Saldo</button>
+  </div>
+
+  <!-- Filtros avanzados -->
+  <div class="card" style="padding:14px;margin-bottom:14px">
+    <div class="filtros-bar">
+      <input type="text" id="vl-buscar" placeholder="🔍 Buscar cliente, CIP o ID..." oninput="vlFiltrar()"/>
+      <input type="date" id="vl-desde" onchange="vlFiltrar()" title="Desde"/>
+      <input type="date" id="vl-hasta" onchange="vlFiltrar()" title="Hasta"/>
+      <select id="vl-tipo" onchange="vlFiltrar()">
+        <option value="">Todos los tipos</option>
+        <option value="Contado">Contado</option>
+        <option value="Crédito">Crédito</option>
+      </select>
+      <button class="btn btn-secondary btn-sm" onclick="vlLimpiar()">Limpiar filtros</button>
+    </div>
+  </div>
+
+  <!-- VISTA MÓVIL: tarjetas -->
+  <div class="venta-mobile" id="vl-cards"></div>
+
+  <!-- VISTA DESKTOP: tabla completa -->
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="table-wrap venta-desktop">
+      <table>
+        <thead>
+          <tr>
+            <th style="cursor:pointer" onclick="vlOrdenar('id_venta')">ID ↕</th>
+            <th style="cursor:pointer" onclick="vlOrdenar('fecha_venta')">Fecha ↕</th>
+            <th>Cliente</th>
+            <th>CIP</th>
+            <th>Descripción</th>
+            <th style="cursor:pointer" onclick="vlOrdenar('precio_final')">P. Final ↕</th>
+            <th>Ajuste</th>
+            <th>Método Pago</th>
+            <th>Tipo</th>
+            <th>Saldo</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="vl-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Paginación -->
+  <div class="paginacion" style="margin-top:12px">
+    <span id="vl-info"></span>
+    <div class="pag-btns" id="vl-pags"></div>
+  </div>
+
+</div>
+
+
+    <!-- ══ NUEVA VENTA ═════════════════════════════════════ -->
+    <div class="panel" id="panel-ventas">
       <div class="card">
         <div class="card-title">🛍️ Registrar Nueva Venta</div>
 
         <div class="field">
           <label class="lbl">Código CIP <span class="req">*</span></label>
-          <input type="text" id="v-cip" placeholder="Ej: FD-AN-18KW-00447" autocapitalize="characters"
-            oninput="onCIPChange()"/>
+          <input type="text" id="v-cip" placeholder="Ej: FD-AN-18KW-00447"
+            autocapitalize="characters" autocomplete="off" spellcheck="false"
+            oninput="onCIPInput()"/>
+          <div id="v-cip-sugs" style="display:none;background:var(--white);border:1px solid var(--g200);border-radius:8px;margin-top:4px;max-height:200px;overflow-y:auto;box-shadow:var(--shadow-md)"></div>
         </div>
 
-        <!-- Precio calculado automáticamente -->
-        <div class="precio-box" id="precio-box">
-          <div class="precio-row"><span>Costo Landed</span><span id="pb-costo">—</span></div>
-          <div class="precio-row"><span>Factor de Venta</span><span id="pb-factor">—</span></div>
-          <div class="precio-row"><span>Precio Venta</span><span id="pb-precio">—</span></div>
-          <div class="precio-row"><span>Ajuste</span><span id="pb-ajuste">— $0.00</span></div>
-          <div class="precio-row total"><span>Precio Final</span><span id="pb-final">—</span></div>
-          <div style="font-size:11px;color:var(--g500);margin-top:8px" id="pb-stock"></div>
+        <div class="precio-preview" id="v-precio-box">
+          <div class="precio-row"><span class="lbl2">Costo Landed</span><span class="val2" id="vp-costo">—</span></div>
+          <div class="precio-row"><span class="lbl2">Factor de Venta</span><span class="val2" id="vp-factor">—</span></div>
+          <div class="precio-row"><span class="lbl2">Precio de Venta</span><span class="val2" id="vp-precio">—</span></div>
+          <div class="precio-row"><span class="lbl2">Ajuste / Descuento</span><span class="val2" id="vp-ajuste">— $0.00</span></div>
+          <div class="precio-row sep"><span>Precio Final</span><span id="vp-final">—</span></div>
+          <div id="vp-stock-chip"></div>
         </div>
 
         <div class="field">
           <label class="lbl">Fecha de Venta <span class="req">*</span></label>
-          <input type="date" id="v-fecha" onchange="calcularPrecio()"/>
+          <input type="date" id="v-fecha" onchange="calcularPrecioVenta()"/>
         </div>
         <div class="field">
           <label class="lbl">Cliente <span class="req">*</span></label>
-          <input type="text" id="v-cliente" placeholder="Nombre completo"/>
+          <input type="text" id="v-cliente" placeholder="Nombre completo del cliente" autocomplete="off"/>
         </div>
         <div class="field">
           <label class="lbl">Ajuste de Precio (USD)</label>
-          <input type="number" id="v-ajuste" placeholder="0.00" step="0.01" min="0" value="0"
-            oninput="actualizarFinal()"/>
+          <input type="number" id="v-ajuste" placeholder="0.00" step="0.01" min="0" value="0" oninput="actualizarPrecioFinal()"/>
         </div>
-        <div class="field">
-          <label class="lbl">Método de Pago <span class="req">*</span></label>
-          <select id="v-metodo">
-            <option value="">— Seleccionar —</option>
-            <option>Efectivo</option>
-            <option>Tarjeta Crédito</option>
-            <option>Tarjeta Débito</option>
-            <option>Transferencia</option>
-            <option>Nota de Crédito</option>
-            <option>Crédito</option>
-          </select>
-        </div>
-        <div class="field">
-          <label class="lbl">Tipo de Venta <span class="req">*</span></label>
-          <select id="v-tipo">
-            <option value="">— Seleccionar —</option>
-            <option>Contado</option>
-            <option>Crédito</option>
-          </select>
+        <div class="grid2">
+          <div class="field">
+            <label class="lbl">Método de Pago <span class="req">*</span></label>
+            <select id="v-metodo">
+              <option value="">— Seleccionar —</option>
+              <option>Efectivo</option>
+              <option>Tarjeta Crédito</option>
+              <option>Tarjeta Débito</option>
+              <option>Transferencia</option>
+              <option>Nota de Crédito</option>
+              <option>Crédito</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="lbl">Tipo de Venta <span class="req">*</span></label>
+            <select id="v-tipo">
+              <option value="">— Seleccionar —</option>
+              <option>Contado</option>
+              <option>Crédito</option>
+            </select>
+          </div>
         </div>
         <div class="field">
           <label class="lbl">Observaciones</label>
-          <textarea id="v-obs" placeholder="Notas adicionales..."></textarea>
+          <textarea id="v-obs" placeholder="Notas adicionales sobre la venta..."></textarea>
         </div>
-        <button class="btn btn-primary" id="btn-venta" onclick="registrarVenta()">Registrar Venta</button>
+        <button class="btn btn-primary btn-full" id="btn-venta" onclick="registrarVenta()">
+          Registrar Venta
+        </button>
       </div>
     </div>
 
-    <!-- PAGOS -->
+    <!-- ══ REGISTRAR PAGO ══════════════════════════════════ -->
     <div class="panel" id="panel-pagos">
       <div class="card">
-        <div class="card-title">💰 Registrar Pago</div>
+        <div class="card-title">💰 Registrar Pago a Crédito</div>
         <div class="search-wrap">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="p-buscar" placeholder="Buscar por cliente o Código CIP"
-            oninput="buscarVenta()"/>
+          <span class="search-ico">🔍</span>
+          <input type="text" id="p-buscar" placeholder="Buscar por nombre de cliente o Código CIP"
+            oninput="buscarVentaCredito()"/>
         </div>
         <div id="p-resultados"></div>
       </div>
-      <div class="saldo-detail" id="saldo-detail">
-        <div class="card-title">Resumen de la Venta</div>
+
+      <div class="saldo-box" id="saldo-box">
+        <div class="card-title">Resumen de la Venta Seleccionada</div>
         <div id="saldo-resumen"></div>
-        <div class="field" style="margin-top:14px">
+        <div class="field" style="margin-top:16px">
           <label class="lbl">Fecha del Pago <span class="req">*</span></label>
           <input type="date" id="p-fecha"/>
         </div>
@@ -305,89 +644,113 @@ tr:hover td{background:var(--g50)}
         </div>
         <div class="field">
           <label class="lbl">Notas</label>
-          <textarea id="p-notas" placeholder="Referencia, número de transferencia..."></textarea>
+          <textarea id="p-notas" placeholder="Número de transferencia, referencia, etc."></textarea>
         </div>
-        <button class="btn btn-primary" id="btn-pago" onclick="registrarPago()">Registrar Pago</button>
+        <button class="btn btn-primary btn-full" id="btn-pago" onclick="registrarPago()">
+          Registrar Pago
+        </button>
       </div>
     </div>
 
-    <!-- INVENTARIO -->
+    <!-- ══ INVENTARIO ══════════════════════════════════════ -->
     <div class="panel" id="panel-inventario">
       <div class="card">
-        <div class="card-title">📦 Inventario</div>
+        <div class="card-title">📦 Inventario y Stock</div>
         <div class="search-wrap">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="inv-buscar" placeholder="Buscar por CIP, descripción o material"
+          <span class="search-ico">🔍</span>
+          <input type="text" id="inv-q" placeholder="Buscar por CIP, descripción, material o proveedor"
             oninput="filtrarInventario()"/>
         </div>
-        <div class="tabla-wrap">
+        <div class="table-wrap">
           <table>
             <thead>
               <tr>
                 <th>Código CIP</th>
                 <th>Descripción</th>
                 <th>Material</th>
+                <th>Talla</th>
                 <th>Proveedor</th>
+                <th>Precio Venta</th>
                 <th>Stock</th>
               </tr>
             </thead>
-            <tbody id="inv-tbody"></tbody>
+            <tbody id="inv-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:20px;color:var(--g400)">Cargando inventario...</td></tr>
+            </tbody>
           </table>
+        </div>
+        <div class="paginacion">
+          <span id="inv-info"></span>
+          <div class="pag-btns" id="inv-pags"></div>
         </div>
       </div>
     </div>
 
-    <!-- CUENTAS POR COBRAR -->
+    <!-- ══ CRÉDITOS (CxC) ══════════════════════════════════ -->
     <div class="panel" id="panel-cxc">
       <div class="card">
-        <div class="card-title">📋 Créditos Pendientes</div>
-        <div class="tabla-wrap">
+        <div class="card-title">📋 Cuentas por Cobrar — Créditos Activos</div>
+        <div class="table-wrap">
           <table>
             <thead>
               <tr>
                 <th>ID Venta</th>
+                <th>Fecha</th>
                 <th>Cliente</th>
+                <th>CIP</th>
                 <th>Precio Final</th>
                 <th>Pagado</th>
                 <th>Saldo</th>
                 <th>Estado</th>
               </tr>
             </thead>
-            <tbody id="cxc-tbody"></tbody>
+            <tbody id="cxc-tbody">
+              <tr><td colspan="8" style="text-align:center;padding:20px;color:var(--g400)">Cargando...</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- COMPRAS -->
+    <!-- ══ COMPRAS ═════════════════════════════════════════ -->
     <div class="panel" id="panel-compras">
       <div class="card">
-        <div class="card-title">📦 Registrar Nueva Compra</div>
-        <p style="color:var(--g500);font-size:13px;margin-bottom:16px">Registra las facturas de compra de tus proveedores aquí.</p>
-
-        <div class="field">
-          <label class="lbl">Proveedor <span class="req">*</span></label>
-          <select id="c-proveedor">
-            <option value="">— Seleccionar —</option>
-            <option>TAKA</option>
-            <option>JODI</option>
-            <option>KAYRA</option>
-            <option>SARRAF</option>
-            <option>NOBLE</option>
-            <option>CAMEX</option>
-          </select>
+        <div class="card-title">🧾 Registrar Nueva Compra</div>
+        <div class="grid2">
+          <div class="field">
+            <label class="lbl">Proveedor <span class="req">*</span></label>
+            <select id="c-prov" onchange="onProveedorChange()">
+              <option value="">— Seleccionar —</option>
+              <option>TAKA</option>
+              <option>JODI</option>
+              <option>KAYRA</option>
+              <option>SARRAF</option>
+              <option>NOBLE</option>
+              <option>CAMEX</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="lbl">N° Factura <span class="req">*</span></label>
+            <input type="text" id="c-factura" placeholder="Ej: INU07621"/>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label class="lbl">Fecha de Compra <span class="req">*</span></label>
+            <input type="date" id="c-fecha"/>
+          </div>
+          <div class="field">
+            <label class="lbl">Lote <span class="req">*</span></label>
+            <select id="c-lote">
+              <option value="">— Seleccionar —</option>
+              <option>Lote 3</option>
+              <option>Lote 4</option>
+            </select>
+          </div>
         </div>
         <div class="field">
-          <label class="lbl">Número de Factura <span class="req">*</span></label>
-          <input type="text" id="c-factura" placeholder="Ej: INU07621"/>
-        </div>
-        <div class="field">
-          <label class="lbl">Fecha de Compra <span class="req">*</span></label>
-          <input type="date" id="c-fecha"/>
-        </div>
-        <div class="field">
-          <label class="lbl">Código Proveedor</label>
-          <input type="text" id="c-cod-prov" placeholder="Ej: DRK7742R01M18W"/>
+          <label class="lbl">Código del Proveedor</label>
+          <input type="text" id="c-codprov" placeholder="Ej: DRK7742R01M18W"/>
         </div>
         <div class="field">
           <label class="lbl">Descripción <span class="req">*</span></label>
@@ -397,7 +760,7 @@ tr:hover td{background:var(--g50)}
           <label class="lbl">Detalle Técnico</label>
           <input type="text" id="c-detalle" placeholder="Ej: 83 RD D 0.635CT / 18W 3.72GM"/>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="grid3">
           <div class="field">
             <label class="lbl">Material</label>
             <select id="c-material">
@@ -411,154 +774,465 @@ tr:hover td{background:var(--g50)}
             <label class="lbl">Talla</label>
             <input type="text" id="c-talla" placeholder="Ej: US#6.5"/>
           </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
           <div class="field">
-            <label class="lbl">Precio Lista</label>
-            <input type="number" id="c-lista" placeholder="0.00" step="0.01"/>
+            <label class="lbl">Peso (g)</label>
+            <input type="number" id="c-peso" placeholder="0.00" step="0.01"/>
+          </div>
+        </div>
+        <div class="grid3">
+          <div class="field">
+            <label class="lbl">Precio Lista <span class="req">*</span></label>
+            <input type="number" id="c-lista" placeholder="0.00" step="0.01" oninput="calcCompra()"/>
           </div>
           <div class="field">
             <label class="lbl">Descuento</label>
-            <input type="number" id="c-descuento" placeholder="0.00" step="0.01" value="0"/>
+            <input type="number" id="c-desc2" placeholder="0.00" step="0.01" value="0" id="c-descuento" oninput="calcCompra()"/>
           </div>
           <div class="field">
-            <label class="lbl">Cantidad</label>
+            <label class="lbl">Cantidad <span class="req">*</span></label>
             <input type="number" id="c-cantidad" placeholder="1" min="1" value="1"/>
           </div>
         </div>
-        <div class="field">
-          <label class="lbl">Lote</label>
-          <select id="c-lote">
-            <option value="">— Seleccionar —</option>
-            <option>Lote 3</option>
-            <option>Lote 4</option>
-          </select>
+
+        <!-- Preview precio neto -->
+        <div id="c-preview" style="display:none;background:var(--gold-lt);border:1.5px solid var(--gold);border-radius:8px;padding:14px;margin:10px 0">
+          <div class="precio-row"><span class="lbl2">Precio Lista</span><span class="val2" id="cp-lista">—</span></div>
+          <div class="precio-row"><span class="lbl2">Descuento</span><span class="val2" id="cp-desc">— $0.00</span></div>
+          <div class="precio-row sep"><span>Precio Neto</span><span id="cp-neto">—</span></div>
         </div>
-        <button class="btn btn-primary" onclick="toast('Módulo de compras en desarrollo — próxima actualización','er')">Registrar Compra</button>
+
+        <div id="c-gasto-especial" style="display:none" class="card" style="background:var(--warn-lt)">
+          <div class="card-title" style="font-size:14px">⚠️ Cargos Especiales (van a Gastos de Compra)</div>
+          <div class="field">
+            <label class="lbl">Monto del Cargo Especial</label>
+            <input type="number" id="c-cargo" placeholder="0.00" step="0.01" value="0"/>
+          </div>
+          <div class="field">
+            <label class="lbl">Descripción del Cargo</label>
+            <input type="text" id="c-cargo-desc" placeholder="Ej: Special Charge, Flete, Seguro..."/>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-full" onclick="toast('Módulo de compras — conectando al servidor. Disponible próximamente.','warn')">
+          Registrar Compra
+        </button>
       </div>
     </div>
 
-    <!-- REPORTES -->
+    <!-- ══ DEVOLUCIONES ════════════════════════════════════ -->
+    <div class="panel" id="panel-devoluciones">
+      <div class="card">
+        <div class="card-title">↩️ Registrar Devolución</div>
+        <p style="color:var(--g500);font-size:13px;margin-bottom:16px">Busca la venta original para procesarla como devolución.</p>
+        <div class="search-wrap">
+          <span class="search-ico">🔍</span>
+          <input type="text" id="dev-q" placeholder="Buscar venta por cliente o CIP" oninput="buscarVentaDev()"/>
+        </div>
+        <div id="dev-resultados"></div>
+        <div id="dev-form" style="display:none">
+          <div class="field">
+            <label class="lbl">Motivo de la Devolución <span class="req">*</span></label>
+            <select id="dev-motivo">
+              <option value="">— Seleccionar —</option>
+              <option>Cambio de joya</option>
+              <option>Defecto del producto</option>
+              <option>No era lo esperado</option>
+              <option>Talla incorrecta</option>
+              <option>Otro</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="lbl">Destino del Dinero <span class="req">*</span></label>
+            <select id="dev-destino">
+              <option value="">— Seleccionar —</option>
+              <option>Reembolso en efectivo</option>
+              <option>Nota de crédito (saldo a favor)</option>
+              <option>Cambio por otra joya</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="lbl">Observaciones</label>
+            <textarea id="dev-obs" placeholder="Detalles adicionales de la devolución..."></textarea>
+          </div>
+          <button class="btn btn-danger btn-full" onclick="toast('Módulo de devoluciones — próximamente.','warn')">
+            Procesar Devolución
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ REPORTES ════════════════════════════════════════ -->
     <div class="panel" id="panel-reportes">
       <div class="card">
-        <div class="card-title">📊 Reportes</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div class="card-title">📈 Motor de Reportes</div>
+        <div class="grid2" style="margin-bottom:16px">
           <div class="field">
-            <label class="lbl">Desde</label>
+            <label class="lbl">Desde <span class="req">*</span></label>
             <input type="date" id="r-desde"/>
           </div>
           <div class="field">
-            <label class="lbl">Hasta</label>
+            <label class="lbl">Hasta <span class="req">*</span></label>
             <input type="date" id="r-hasta"/>
           </div>
         </div>
-        <button class="btn btn-primary" onclick="generarReporte()">Generar Reporte</button>
-        <div id="reporte-resultado" style="margin-top:20px"></div>
+        <button class="btn btn-primary btn-full" onclick="generarReporte()">
+          📊 Generar Reporte
+        </button>
+      </div>
+      <div id="reporte-resultado"></div>
+    </div>
+
+    <!-- ══ AUDITORÍA ═══════════════════════════════════════ -->
+    <div class="panel" id="panel-auditoria">
+      <div class="card">
+        <div class="card-title">🔍 Panel de Auditoría — 13 Controles</div>
+        <button class="btn btn-primary" onclick="ejecutarAuditoria()" style="margin-bottom:16px">
+          🔄 Ejecutar Auditoría
+        </button>
+        <div id="audit-resultado">
+          <div style="text-align:center;padding:20px;color:var(--g400)">
+            Presiona "Ejecutar Auditoría" para verificar la integridad del sistema.
+          </div>
+        </div>
       </div>
     </div>
 
   </div><!-- /content -->
 </div><!-- /app -->
 
+<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
+// ── CONFIGURACIÓN ────────────────────────────────────────
 const API = 'https://forever-diamonds.onrender.com';
-const USERS = {
-  'miguel': '140587$',
-  'thalia': 'FAVAS2026$'
+const USUARIOS = {
+  'miguel': { pass: '140587$', nombre: 'Miguel' },
+  'thalia': { pass: 'FAVAS2026$', nombre: 'Thalia' }
 };
 
-let currentUser = '';
-let ventaSeleccionada = null;
-let precioVentaActual = 0;
+// ── ESTADO GLOBAL ────────────────────────────────────────
+let sesion = null;
+let catalogoData = [];
 let inventarioData = [];
+let invPagina = 1;
+const INV_POR_PAG = 25;
+let ventaSeleccionada = null;
+let ventaDevolucion = null;
+let precioVentaActual = 0;
+let cipTimer = null;
 let buscarTimer = null;
 
-// ── LOGIN ────────────────────────────────────────────────────
+// ── SPLASH / INICIO ───────────────────────────────────────
+async function iniciarSistema() {
+  const bar = document.getElementById('splashBar');
+  const pct = document.getElementById('splashPct');
+  const msg = document.getElementById('splashMsg');
+  let progreso = 0;
+
+  // Simular progreso mientras esperamos al servidor
+  const intervalo = setInterval(() => {
+    if (progreso < 85) {
+      progreso += Math.random() * 8;
+      bar.style.width = Math.min(progreso, 85) + '%';
+      pct.textContent = Math.round(Math.min(progreso, 85)) + '%';
+    }
+  }, 800);
+
+  try {
+    msg.textContent = 'Despertando el servidor...\nEsto puede tomar hasta 50 segundos si el sistema estuvo inactivo.';
+    const res = await fetch(API + '/api/status', { signal: AbortSignal.timeout(60000) });
+    if (res.ok) {
+      clearInterval(intervalo);
+      progreso = 100;
+      bar.style.width = '100%';
+      pct.textContent = '100%';
+      msg.textContent = '¡Sistema listo!';
+      setTimeout(() => {
+        document.getElementById('splash').classList.add('fade');
+        setTimeout(() => {
+          document.getElementById('splash').style.display = 'none';
+          document.getElementById('loginPage').style.display = 'flex';
+        }, 500);
+      }, 400);
+    }
+  } catch(e) {
+    clearInterval(intervalo);
+    msg.textContent = 'Error al conectar. Verifica tu internet e intenta de nuevo.';
+    pct.textContent = 'Error';
+  }
+}
+
+// ── LOGIN / LOGOUT ────────────────────────────────────────
 function doLogin() {
-  const user = document.getElementById('loginUser').value.trim().toLowerCase();
-  const pass = document.getElementById('loginPass').value;
-  if (USERS[user] && USERS[user] === pass) {
-    currentUser = user === 'miguel' ? 'Miguel' : 'Thalia';
+  const user = document.getElementById('lu').value.trim().toLowerCase();
+  const pass = document.getElementById('lp').value;
+  const errEl = document.getElementById('loginErr');
+  if (USUARIOS[user] && USUARIOS[user].pass === pass) {
+    sesion = { user, nombre: USUARIOS[user].nombre };
+    errEl.style.display = 'none';
     document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    document.getElementById('topbarUser').textContent = currentUser;
-    document.getElementById('loginError').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('topbarUser').textContent = '👤 ' + sesion.nombre;
     document.getElementById('v-fecha').value = hoy();
     document.getElementById('p-fecha').value = hoy();
-    cargarDashboard();
-    cargarInventario();
-    cargarCXC();
+    cargarTodo();
   } else {
-    document.getElementById('loginError').style.display = 'block';
+    errEl.style.display = 'block';
+    document.getElementById('lp').value = '';
   }
 }
 
 function doLogout() {
-  document.getElementById('loginPage').style.display = 'flex';
+  sesion = null;
   document.getElementById('app').style.display = 'none';
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('lu').value = '';
+  document.getElementById('lp').value = '';
 }
 
-// ── NAVEGACIÓN ────────────────────────────────────────────────
-function showPanel(name) {
+// ── NAVEGACIÓN ────────────────────────────────────────────
+function showPanel(name, el) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
-  event.target.classList.add('active');
+  if (el) el.classList.add('active');
 }
 
+// ── UTILIDADES ────────────────────────────────────────────
 function hoy() { return new Date().toISOString().split('T')[0]; }
 
-// ── DASHBOARD ─────────────────────────────────────────────────
+function fmt(n) {
+  return '$' + parseFloat(n || 0).toLocaleString('en-US', {
+    minimumFractionDigits: 2, maximumFractionDigits: 2
+  });
+}
+
+function toast(msg, tipo = 'ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + tipo + ' show';
+  setTimeout(() => el.className = 'toast', 4500);
+}
+
+function cerrarModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function limpiarErr(...ids) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('err');
+  });
+}
+
+// ── CARGAR TODO AL INICIO ─────────────────────────────────
+async function cargarTodo() {
+  await Promise.all([
+    cargarDashboard(),
+    cargarCatalogo(),
+    cargarCXC(),
+  ]);
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────
 async function cargarDashboard() {
   try {
-    const res = await fetch(API + '/api/resumen');
-    const d = await res.json();
-    document.getElementById('d-ventas').textContent = d.total_ventas;
-    document.getElementById('d-monto').textContent = '$' + d.monto_ventas.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
-    document.getElementById('d-creditos').textContent = d.creditos_activos || 0;
-    document.getElementById('d-cxc').textContent = '$' + (d.saldo_cxc || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+    const [resumen, catalogo, ventas] = await Promise.all([
+      fetch(API + '/api/resumen').then(r => r.json()),
+      fetch(API + '/api/catalogo').then(r => r.json()),
+      fetch(API + '/api/ventas/buscar?q=vta').then(r => r.json()).catch(() => ({resultados:[]}))
+    ]);
+
+    // KPI fila 1
+    document.getElementById('d-nventas').textContent = resumen.total_ventas || 0;
+    document.getElementById('d-monto').textContent = fmt(resumen.monto_ventas);
+    document.getElementById('d-creditos').textContent = resumen.creditos_activos || 0;
+    document.getElementById('d-creditos-sub').textContent = fmt(resumen.saldo_cxc) + ' pendiente';
+    document.getElementById('d-cxc').textContent = fmt(resumen.saldo_cxc);
+
+    // KPI fila 2 — calcular stock desde catálogo
+    inventarioData = catalogo;
+    catalogoData = catalogo;
+    const enStock = catalogo.filter(p => p.unidades_compradas > 0).length;
+    const agotados = catalogo.filter(p => p.unidades_compradas <= 0).length;
+    document.getElementById('d-productos').textContent = catalogo.length;
+    document.getElementById('d-en-stock').textContent = enStock;
+    document.getElementById('d-agotados').textContent = agotados;
+    document.getElementById('d-stock-sub').textContent = enStock + ' con unidades';
+
+    // Ganancia bruta aproximada (desde resumen)
+    const ganancia = resumen.monto_ventas - (resumen.monto_ventas * 0.56); // aprox
+    document.getElementById('d-ganancia').textContent = fmt(resumen.monto_ventas);
+    document.getElementById('d-margen-sub').textContent = 'Total ingresos acumulados';
+
+    // Últimas 5 ventas
+    const resultados = (ventas.resultados || []).slice(0, 5);
+    const ulDiv = document.getElementById('d-ultimas-ventas');
+    if (resultados.length === 0) {
+      ulDiv.innerHTML = '<p style="color:var(--g400);text-align:center;padding:16px">No hay ventas registradas aún</p>';
+    } else {
+      ulDiv.innerHTML = resultados.map(v => `
+        <div class="venta-item">
+          <div class="venta-info">
+            <div class="venta-cliente">${v.cliente}</div>
+            <div class="venta-cip"><code>${v.codigo_cip}</code> · ${v.tipo_venta}</div>
+          </div>
+          <div class="venta-right">
+            <div class="venta-monto">${fmt(v.precio_final)}</div>
+            <div class="venta-fecha">${v.fecha_venta}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Alertas
+    const alertDiv = document.getElementById('d-alertas');
+    const alertas = [];
+    if (agotados > 0) alertas.push({ tipo: 'warn', ico: '📦', txt: `${agotados} producto(s) agotados`, sub: 'Considera hacer una nueva compra' });
+    if ((resumen.creditos_activos || 0) > 0) alertas.push({ tipo: 'warn', ico: '⏳', txt: `${resumen.creditos_activos} crédito(s) pendiente(s) de cobro`, sub: `Saldo total: ${fmt(resumen.saldo_cxc)}` });
+    if (alertas.length === 0) {
+      alertDiv.innerHTML = '<div style="text-align:center;padding:16px;color:var(--ok)">✅ Todo en orden — no hay alertas pendientes</div>';
+    } else {
+      alertDiv.innerHTML = alertas.map(a => `
+        <div class="alert-item ${a.tipo}">
+          <div class="alert-icon">${a.ico}</div>
+          <div><div class="alert-txt">${a.txt}</div><div class="alert-sub">${a.sub}</div></div>
+        </div>
+      `).join('');
+    }
+
+    renderInventario();
+
+  } catch(e) {
+    console.error('Error cargando dashboard:', e);
+  }
+}
+
+// ── CATÁLOGO / INVENTARIO ─────────────────────────────────
+async function cargarCatalogo() {
+  try {
+    const data = await fetch(API + '/api/catalogo').then(r => r.json());
+    inventarioData = data;
+    catalogoData = data;
+    renderInventario();
   } catch(e) {}
 }
 
-// ── NUEVA VENTA ───────────────────────────────────────────────
-let cipTimer = null;
-function onCIPChange() {
-  clearTimeout(cipTimer);
-  cipTimer = setTimeout(calcularPrecio, 600);
+function renderInventario() {
+  const q = (document.getElementById('inv-q')?.value || '').trim().toUpperCase();
+  let datos = inventarioData;
+  if (q) datos = datos.filter(p =>
+    (p.codigo_cip||'').toUpperCase().includes(q) ||
+    (p.descripcion||'').toUpperCase().includes(q) ||
+    (p.material||'').toUpperCase().includes(q) ||
+    (p.proveedor||'').toUpperCase().includes(q)
+  );
+  const total = datos.length;
+  const totalPags = Math.ceil(total / INV_POR_PAG);
+  if (invPagina > totalPags) invPagina = 1;
+  const slice = datos.slice((invPagina-1)*INV_POR_PAG, invPagina*INV_POR_PAG);
+
+  const tbody = document.getElementById('inv-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = slice.map(p => {
+    const st = p.unidades_compradas || 0;
+    const badge = st > 0 ? `<span class="badge badge-ok">✓ ${st}</span>` : `<span class="badge badge-err">Agotado</span>`;
+    return `<tr>
+      <td><code>${p.codigo_cip}</code></td>
+      <td>${p.descripcion || '—'}</td>
+      <td>${p.material || '—'}</td>
+      <td>${p.talla || '—'}</td>
+      <td>${p.proveedor || '—'}</td>
+      <td>—</td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--g400)">Sin resultados</td></tr>';
+
+  const info = document.getElementById('inv-info');
+  if (info) info.textContent = `${total} productos · Página ${invPagina} de ${totalPags || 1}`;
+
+  const pagsDiv = document.getElementById('inv-pags');
+  if (pagsDiv) {
+    let html = `<button class="pag-btn" onclick="invIrPag(${invPagina-1})" ${invPagina<=1?'disabled':''}>‹ Anterior</button>`;
+    for (let p = Math.max(1,invPagina-2); p <= Math.min(totalPags,invPagina+2); p++) {
+      html += `<button class="pag-btn ${p===invPagina?'active':''}" onclick="invIrPag(${p})">${p}</button>`;
+    }
+    html += `<button class="pag-btn" onclick="invIrPag(${invPagina+1})" ${invPagina>=totalPags?'disabled':''}>Siguiente ›</button>`;
+    pagsDiv.innerHTML = html;
+  }
 }
 
-async function calcularPrecio() {
+function invIrPag(p) { invPagina = p; renderInventario(); }
+function filtrarInventario() { invPagina = 1; renderInventario(); }
+
+// ── NUEVA VENTA ───────────────────────────────────────────
+function onCIPInput() {
+  const val = document.getElementById('v-cip').value.trim().toUpperCase();
+  // Autocompletar desde catálogo local
+  const sugs = document.getElementById('v-cip-sugs');
+  if (val.length >= 3) {
+    const matches = catalogoData.filter(p => p.codigo_cip.includes(val)).slice(0, 8);
+    if (matches.length) {
+      sugs.style.display = 'block';
+      sugs.innerHTML = matches.map(p => `
+        <div onclick="selCIP('${p.codigo_cip}')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--g100);font-size:13px;transition:background .1s"
+          onmouseover="this.style.background='var(--g50)'" onmouseout="this.style.background=''">
+          <strong>${p.codigo_cip}</strong>
+          <span style="color:var(--g500);margin-left:8px;font-size:11px">${p.descripcion || ''}</span>
+        </div>
+      `).join('');
+    } else sugs.style.display = 'none';
+  } else {
+    sugs.style.display = 'none';
+  }
+  clearTimeout(cipTimer);
+  cipTimer = setTimeout(calcularPrecioVenta, 700);
+}
+
+function selCIP(cip) {
+  document.getElementById('v-cip').value = cip;
+  document.getElementById('v-cip-sugs').style.display = 'none';
+  calcularPrecioVenta();
+}
+
+async function calcularPrecioVenta() {
   const cip = document.getElementById('v-cip').value.trim();
   const fecha = document.getElementById('v-fecha').value;
   if (!cip || !fecha) return;
+
   try {
     const [precioRes, stockRes] = await Promise.all([
-      fetch(API + '/api/precio/' + encodeURIComponent(cip) + '?fecha=' + fecha),
-      fetch(API + '/api/stock/' + encodeURIComponent(cip))
+      fetch(`${API}/api/precio/${encodeURIComponent(cip)}?fecha=${fecha}`),
+      fetch(`${API}/api/stock/${encodeURIComponent(cip)}`)
     ]);
     const precio = await precioRes.json();
     const stock = await stockRes.json();
+
     if (precio.precio_venta) {
       precioVentaActual = precio.precio_venta;
-      document.getElementById('pb-costo').textContent = '$' + precio.costo_landed.toFixed(2);
-      document.getElementById('pb-factor').textContent = precio.factor_venta + 'x';
-      document.getElementById('pb-precio').textContent = '$' + precio.precio_venta.toFixed(2);
-      document.getElementById('pb-stock').textContent = 'Stock disponible: ' + stock.stock_disponible + ' unidad(es)';
-      actualizarFinal();
-      document.getElementById('precio-box').classList.add('show');
+      document.getElementById('vp-costo').textContent = fmt(precio.costo_landed);
+      document.getElementById('vp-factor').textContent = precio.factor_venta + 'x';
+      document.getElementById('vp-precio').textContent = fmt(precio.precio_venta);
+      actualizarPrecioFinal();
+      document.getElementById('v-precio-box').classList.add('show');
+
+      const chip = document.getElementById('vp-stock-chip');
+      const st = stock.stock_disponible;
+      chip.innerHTML = `<span class="stock-chip ${st > 0 ? 'ok' : 'err'}">${st > 0 ? '✓' : '✗'} Stock disponible: ${st} unidad(es)</span>`;
+    } else {
+      document.getElementById('v-precio-box').classList.remove('show');
+      precioVentaActual = 0;
+      if (precio.detail) toast(precio.detail, 'er');
     }
   } catch(e) {}
 }
 
-function actualizarFinal() {
+function actualizarPrecioFinal() {
   const ajuste = parseFloat(document.getElementById('v-ajuste').value) || 0;
   const final = precioVentaActual - ajuste;
-  document.getElementById('pb-ajuste').textContent = '— $' + ajuste.toFixed(2);
-  document.getElementById('pb-final').textContent = '$' + final.toFixed(2);
+  document.getElementById('vp-ajuste').textContent = '— ' + fmt(ajuste);
+  document.getElementById('vp-final').textContent = fmt(final);
 }
 
 async function registrarVenta() {
@@ -567,90 +1241,105 @@ async function registrarVenta() {
   const cliente = document.getElementById('v-cliente').value.trim();
   const metodo = document.getElementById('v-metodo').value;
   const tipo = document.getElementById('v-tipo').value;
-  if (!cip || !fecha || !cliente || !metodo || !tipo) {
-    toast('Completa todos los campos obligatorios', 'er'); return;
-  }
+
+  limpiarErr('v-cip','v-fecha','v-cliente','v-metodo','v-tipo');
+
+  let ok = true;
+  if (!cip) { document.getElementById('v-cip').classList.add('err'); ok = false; }
+  if (!fecha) { document.getElementById('v-fecha').classList.add('err'); ok = false; }
+  if (!cliente) { document.getElementById('v-cliente').classList.add('err'); ok = false; }
+  if (!metodo) { document.getElementById('v-metodo').classList.add('err'); ok = false; }
+  if (!tipo) { document.getElementById('v-tipo').classList.add('err'); ok = false; }
+  if (!ok) { toast('Completa todos los campos obligatorios', 'er'); return; }
+  if (precioVentaActual <= 0) { toast('Ingresa un CIP válido para calcular el precio', 'er'); return; }
+
   const btn = document.getElementById('btn-venta');
   btn.disabled = true; btn.textContent = 'Registrando...';
+
   try {
     const res = await fetch(API + '/api/ventas', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         codigo_cip: cip, fecha_venta: fecha, cliente,
         ajuste_precio: parseFloat(document.getElementById('v-ajuste').value) || 0,
-        metodo_pago: metodo, tipo_venta: tipo, vendedor: currentUser,
+        metodo_pago: metodo, tipo_venta: tipo, vendedor: sesion.nombre,
         observaciones: document.getElementById('v-obs').value.trim()
       })
     });
     const d = await res.json();
     if (res.ok) {
       toast('✓ ' + d.mensaje, 'ok');
-      document.getElementById('v-cip').value = '';
-      document.getElementById('v-cliente').value = '';
+      // Limpiar formulario
+      ['v-cip','v-cliente','v-obs'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('v-ajuste').value = '0';
       document.getElementById('v-metodo').value = '';
       document.getElementById('v-tipo').value = '';
-      document.getElementById('v-obs').value = '';
-      document.getElementById('precio-box').classList.remove('show');
+      document.getElementById('v-precio-box').classList.remove('show');
+      document.getElementById('v-fecha').value = hoy();
       precioVentaActual = 0;
-      cargarDashboard();
+      await cargarDashboard();
     } else {
-      toast(d.detail || 'Error al registrar', 'er');
+      toast(d.detail || 'Error al registrar la venta', 'er');
     }
-  } catch(e) { toast('Sin conexión', 'er'); }
+  } catch(e) { toast('Sin conexión con el servidor', 'er'); }
   btn.disabled = false; btn.textContent = 'Registrar Venta';
 }
 
-// ── PAGOS ─────────────────────────────────────────────────────
-async function buscarVenta() {
+// ── PAGOS ─────────────────────────────────────────────────
+async function buscarVentaCredito() {
   clearTimeout(buscarTimer);
   const q = document.getElementById('p-buscar').value.trim();
   if (q.length < 2) {
     document.getElementById('p-resultados').innerHTML = '';
-    document.getElementById('saldo-detail').classList.remove('show');
+    document.getElementById('saldo-box').classList.remove('show');
     return;
   }
   buscarTimer = setTimeout(async () => {
     try {
-      const res = await fetch(API + '/api/ventas/buscar?q=' + encodeURIComponent(q));
+      const res = await fetch(`${API}/api/ventas/buscar?q=${encodeURIComponent(q)}`);
       const d = await res.json();
       const cont = document.getElementById('p-resultados');
-      if (!d.resultados || !d.resultados.length) {
-        cont.innerHTML = '<p style="color:var(--g500);font-size:14px;padding:10px 0">No se encontraron ventas</p>';
+      const creditos = (d.resultados || []).filter(v => v.tipo_venta === 'Crédito');
+      if (!creditos.length) {
+        cont.innerHTML = '<p style="color:var(--g500);font-size:13px;padding:12px 0">No se encontraron ventas a crédito con ese criterio.</p>';
         return;
       }
-      cont.innerHTML = d.resultados.map((v,i) => `
-        <div class="result-card" onclick="selVenta(${i})" data-idx="${i}">
-          <div class="result-cip">${v.codigo_cip}</div>
-          <div class="result-cliente">${v.cliente}</div>
-          <div class="result-row"><span>Precio Final</span><span class="val">$${v.precio_final.toFixed(2)}</span></div>
-          <div class="result-row"><span>Pagado</span><span class="val">$${v.total_pagado.toFixed(2)}</span></div>
-          <span class="badge ${v.pagado_completo ? 'badge-ok' : 'badge-warn'}">${v.pagado_completo ? '✓ Pagado' : 'Saldo: $' + v.saldo.toFixed(2)}</span>
+      window._busqResultados = creditos;
+      cont.innerHTML = creditos.map((v, i) => `
+        <div class="result-card" onclick="selVentaPago(${i})">
+          <div class="result-cip">${v.codigo_cip} · ${v.id_venta}</div>
+          <div class="result-name">${v.cliente}</div>
+          <div class="result-row"><span>Precio Final</span><span class="rv">${fmt(v.precio_final)}</span></div>
+          <div class="result-row"><span>Total Pagado</span><span class="rv">${fmt(v.total_pagado)}</span></div>
+          <span class="badge ${v.pagado_completo ? 'badge-ok' : 'badge-warn'}">
+            ${v.pagado_completo ? '✓ Pagado completo' : 'Saldo: ' + fmt(v.saldo)}
+          </span>
         </div>
       `).join('');
-      window._resultados = d.resultados;
     } catch(e) {}
   }, 400);
 }
 
-function selVenta(idx) {
+function selVentaPago(idx) {
   document.querySelectorAll('.result-card').forEach(c => c.classList.remove('sel'));
   document.querySelectorAll('.result-card')[idx].classList.add('sel');
-  ventaSeleccionada = window._resultados[idx];
+  ventaSeleccionada = window._busqResultados[idx];
   const v = ventaSeleccionada;
-  const saldo = v.saldo;
   document.getElementById('saldo-resumen').innerHTML = `
-    <div class="saldo-row"><span>${v.codigo_cip}</span><span>${v.cliente}</span></div>
-    <div class="saldo-row"><span>Precio Final</span><span>$${v.precio_final.toFixed(2)}</span></div>
-    <div class="saldo-row"><span>Total Pagado</span><span>$${v.total_pagado.toFixed(2)}</span></div>
-    <div class="saldo-row total"><span>Saldo Pendiente</span><span style="color:${v.pagado_completo?'var(--ok)':'var(--warn)'}">$${saldo.toFixed(2)}</span></div>
+    <div class="saldo-row"><span style="color:var(--g500)">Venta</span><span>${v.id_venta}</span></div>
+    <div class="saldo-row"><span style="color:var(--g500)">Cliente</span><span><strong>${v.cliente}</strong></span></div>
+    <div class="saldo-row"><span style="color:var(--g500)">CIP</span><span><code>${v.codigo_cip}</code></span></div>
+    <div class="saldo-row"><span style="color:var(--g500)">Precio Final</span><span>${fmt(v.precio_final)}</span></div>
+    <div class="saldo-row"><span style="color:var(--g500)">Total Pagado</span><span>${fmt(v.total_pagado)}</span></div>
+    <div class="saldo-row saldo-total"><span>Saldo Pendiente</span><span style="color:${v.saldo>0?'var(--warn)':'var(--ok)'}">${fmt(v.saldo)}</span></div>
   `;
   document.getElementById('p-monto').value = '';
   document.getElementById('p-notas').value = '';
+  document.getElementById('p-fecha').value = hoy();
   document.getElementById('btn-pago').disabled = v.pagado_completo;
-  document.getElementById('saldo-detail').classList.add('show');
-  setTimeout(() => document.getElementById('saldo-detail').scrollIntoView({behavior:'smooth'}), 100);
+  document.getElementById('saldo-box').classList.add('show');
+  setTimeout(() => document.getElementById('saldo-box').scrollIntoView({behavior:'smooth',block:'start'}), 100);
 }
 
 async function registrarPago() {
@@ -659,121 +1348,527 @@ async function registrarPago() {
   const monto = parseFloat(document.getElementById('p-monto').value);
   const metodo = document.getElementById('p-metodo').value;
   if (!fecha || !monto || !metodo) { toast('Completa todos los campos', 'er'); return; }
+
   const btn = document.getElementById('btn-pago');
   btn.disabled = true; btn.textContent = 'Registrando...';
   try {
     const res = await fetch(API + '/api/pagos', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id_venta: ventaSeleccionada.id_venta,
         codigo_cip: ventaSeleccionada.codigo_cip,
         cliente: ventaSeleccionada.cliente,
         fecha_pago: fecha, monto, metodo_pago: metodo,
-        vendedor: currentUser,
+        vendedor: sesion.nombre,
         notas: document.getElementById('p-notas').value.trim()
       })
     });
     const d = await res.json();
     if (res.ok) {
       if (d.pagado_completo) {
-        document.getElementById('modalCliente').textContent = ventaSeleccionada.cliente;
-        document.getElementById('modalPago').classList.add('show');
+        document.getElementById('celebCliente').textContent = ventaSeleccionada.cliente;
+        document.getElementById('modalCelebracion').classList.add('show');
       } else {
-        toast('✓ Pago registrado. Saldo: $' + d.nuevo_saldo.toFixed(2), 'ok');
+        toast(`✓ Pago registrado. Nuevo saldo: ${fmt(d.nuevo_saldo)}`, 'ok');
       }
       ventaSeleccionada = null;
-      document.getElementById('saldo-detail').classList.remove('show');
+      document.getElementById('saldo-box').classList.remove('show');
       document.getElementById('p-buscar').value = '';
       document.getElementById('p-resultados').innerHTML = '';
-      cargarDashboard(); cargarCXC();
+      await cargarDashboard();
+      await cargarCXC();
     } else {
-      toast(d.detail || 'Error al registrar', 'er');
+      toast(d.detail || 'Error al registrar el pago', 'er');
     }
   } catch(e) { toast('Sin conexión', 'er'); }
   btn.disabled = false; btn.textContent = 'Registrar Pago';
 }
 
-// ── INVENTARIO ────────────────────────────────────────────────
-async function cargarInventario() {
-  try {
-    const res = await fetch(API + '/api/catalogo');
-    inventarioData = await res.json();
-    renderInventario(inventarioData);
-  } catch(e) {}
-}
-
-function renderInventario(data) {
-  document.getElementById('inv-tbody').innerHTML = data.map(p => `
-    <tr>
-      <td><code style="font-size:11px">${p.codigo_cip}</code></td>
-      <td>${p.descripcion || '—'}</td>
-      <td>${p.material || '—'}</td>
-      <td>${p.proveedor || '—'}</td>
-      <td><span class="badge ${p.unidades_compradas > 0 ? 'badge-ok' : 'badge-err'}">${p.unidades_compradas}</span></td>
-    </tr>
-  `).join('');
-}
-
-function filtrarInventario() {
-  const q = document.getElementById('inv-buscar').value.trim().toUpperCase();
-  if (!q) { renderInventario(inventarioData); return; }
-  renderInventario(inventarioData.filter(p =>
-    (p.codigo_cip||'').toUpperCase().includes(q) ||
-    (p.descripcion||'').toUpperCase().includes(q) ||
-    (p.material||'').toUpperCase().includes(q)
-  ));
-}
-
-// ── CXC ───────────────────────────────────────────────────────
+// ── CRÉDITOS (CxC) ────────────────────────────────────────
 async function cargarCXC() {
   try {
-    const res = await fetch(API + '/api/ventas/buscar?q=a');
+    const res = await fetch(`${API}/api/ventas/buscar?q=vta`);
     const d = await res.json();
-    const creditos = (d.resultados || []).filter(v => v.tipo_venta === 'Crédito');
-    document.getElementById('cxc-tbody').innerHTML = creditos.map(v => `
+    const creditos = (d.resultados || [])
+      .filter(v => v.tipo_venta === 'Crédito')
+      .sort((a,b) => a.fecha_venta < b.fecha_venta ? 1 : -1);
+    const tbody = document.getElementById('cxc-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = creditos.map(v => `
       <tr>
-        <td>${v.id_venta}</td>
+        <td><code>${v.id_venta}</code></td>
+        <td>${v.fecha_venta}</td>
         <td>${v.cliente}</td>
-        <td>$${v.precio_final.toFixed(2)}</td>
-        <td>$${v.total_pagado.toFixed(2)}</td>
-        <td>$${v.saldo.toFixed(2)}</td>
-        <td><span class="badge ${v.pagado_completo ? 'badge-ok' : 'badge-warn'}">${v.pagado_completo ? 'Pagado' : 'Pendiente'}</span></td>
+        <td><code>${v.codigo_cip}</code></td>
+        <td>${fmt(v.precio_final)}</td>
+        <td>${fmt(v.total_pagado)}</td>
+        <td><strong>${fmt(v.saldo)}</strong></td>
+        <td><span class="badge ${v.pagado_completo?'badge-ok':'badge-warn'}">${v.pagado_completo?'Pagado':'Pendiente'}</span></td>
       </tr>
-    `).join('');
+    `).join('') || '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--g400)">No hay créditos</td></tr>';
   } catch(e) {}
 }
 
-// ── REPORTES ──────────────────────────────────────────────────
+// ── COMPRAS ───────────────────────────────────────────────
+function onProveedorChange() {
+  const prov = document.getElementById('c-prov').value;
+  const gastoDiv = document.getElementById('c-gasto-especial');
+  // Mostrar sección de cargos especiales para cualquier proveedor
+  gastoDiv.style.display = prov ? 'block' : 'none';
+  // SARRAF: descuento siempre 0 y deshabilitado
+  const descInput = document.getElementById('c-desc2');
+  if (prov === 'SARRAF') {
+    descInput.value = '0'; descInput.disabled = true;
+    toast('SARRAF: Descuento siempre $0 (regla del proveedor)', 'warn');
+  } else {
+    descInput.disabled = false;
+  }
+}
+
+function calcCompra() {
+  const lista = parseFloat(document.getElementById('c-lista').value) || 0;
+  const desc = parseFloat(document.getElementById('c-desc2').value) || 0;
+  const neto = lista - desc;
+  if (lista > 0) {
+    document.getElementById('c-preview').style.display = 'block';
+    document.getElementById('cp-lista').textContent = fmt(lista);
+    document.getElementById('cp-desc').textContent = '— ' + fmt(desc);
+    document.getElementById('cp-neto').textContent = fmt(neto);
+  } else {
+    document.getElementById('c-preview').style.display = 'none';
+  }
+}
+
+// ── DEVOLUCIONES ──────────────────────────────────────────
+async function buscarVentaDev() {
+  clearTimeout(buscarTimer);
+  const q = document.getElementById('dev-q').value.trim();
+  if (q.length < 2) { document.getElementById('dev-resultados').innerHTML = ''; return; }
+  buscarTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${API}/api/ventas/buscar?q=${encodeURIComponent(q)}`);
+      const d = await res.json();
+      const activas = (d.resultados || []).filter(v => v.estado === 'Activa');
+      document.getElementById('dev-resultados').innerHTML = activas.map((v,i) => `
+        <div class="result-card" onclick="selVentaDev(${i})">
+          <div class="result-cip">${v.codigo_cip} · ${v.id_venta}</div>
+          <div class="result-name">${v.cliente}</div>
+          <div class="result-row"><span>Precio Final</span><span class="rv">${fmt(v.precio_final)}</span></div>
+          <div class="result-row"><span>Fecha</span><span class="rv">${v.fecha_venta}</span></div>
+          <span class="badge badge-info">${v.tipo_venta}</span>
+        </div>
+      `).join('') || '<p style="color:var(--g500);font-size:13px;padding:12px 0">Sin resultados</p>';
+      window._devResultados = activas;
+    } catch(e) {}
+  }, 400);
+}
+
+function selVentaDev(idx) {
+  document.querySelectorAll('.result-card').forEach(c => c.classList.remove('sel'));
+  document.querySelectorAll('.result-card')[idx].classList.add('sel');
+  ventaDevolucion = window._devResultados[idx];
+  document.getElementById('dev-form').style.display = 'block';
+}
+
+// ── REPORTES ──────────────────────────────────────────────
 async function generarReporte() {
   const desde = document.getElementById('r-desde').value;
   const hasta = document.getElementById('r-hasta').value;
   if (!desde || !hasta) { toast('Selecciona el rango de fechas', 'er'); return; }
+
+  document.getElementById('reporte-resultado').innerHTML = '<div style="text-align:center;padding:30px;color:var(--g400)">Generando reporte...</div>';
+
   try {
-    const res = await fetch(API + '/api/ventas/buscar?q=a');
+    const res = await fetch(`${API}/api/ventas/buscar?q=vta`);
     const d = await res.json();
-    const ventas = (d.resultados || []).filter(v => v.fecha_venta >= desde && v.fecha_venta <= hasta);
-    const total = ventas.reduce((s,v) => s + v.precio_final, 0);
+    const todas = (d.resultados || []).filter(v =>
+      v.fecha_venta >= desde && v.fecha_venta <= hasta && v.estado !== 'ANULADA'
+    );
+
+    const totalIngresos = todas.reduce((s,v) => s + v.precio_final, 0);
+    const contado = todas.filter(v => v.tipo_venta === 'Contado');
+    const credito = todas.filter(v => v.tipo_venta === 'Crédito');
+    const totalContado = contado.reduce((s,v) => s + v.precio_final, 0);
+    const totalCredito = credito.reduce((s,v) => s + v.precio_final, 0);
+
+    // Ventas por tipo de joya
+    const porTipo = {};
+    todas.forEach(v => {
+      const cod = v.codigo_cip || '';
+      let tipo = 'Otros';
+      if (cod.includes('-AR-')) tipo = 'Aretes';
+      else if (cod.includes('-AN-')) tipo = 'Anillos';
+      else if (cod.includes('-BR-')) tipo = 'Brazaletes';
+      else if (cod.includes('-CO-')) tipo = 'Collares';
+      else if (cod.includes('-DI-')) tipo = 'Dijes';
+      else if (cod.includes('-PU-')) tipo = 'Pulseras';
+      if (!porTipo[tipo]) porTipo[tipo] = { n: 0, total: 0 };
+      porTipo[tipo].n++;
+      porTipo[tipo].total += v.precio_final;
+    });
+
+    // Ventas por cliente
+    const porCliente = {};
+    todas.forEach(v => {
+      if (!porCliente[v.cliente]) porCliente[v.cliente] = { n: 0, total: 0 };
+      porCliente[v.cliente].n++;
+      porCliente[v.cliente].total += v.precio_final;
+    });
+    const top5Cli = Object.entries(porCliente)
+      .sort((a,b) => b[1].total - a[1].total).slice(0, 5);
+
     document.getElementById('reporte-resultado').innerHTML = `
-      <div class="stats">
-        <div class="stat"><div class="stat-num">${ventas.length}</div><div class="stat-label">Ventas en período</div></div>
-        <div class="stat"><div class="stat-num">$${total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div><div class="stat-label">Total vendido</div></div>
+
+      <!-- MÓDULO 1: Ventas del período -->
+      <div class="card">
+        <div class="card-title">📊 Módulo 1 — Ventas del Período (${desde} al ${hasta})</div>
+        <div class="kpi-grid">
+          <div class="kpi k-gold"><div class="kpi-val">${todas.length}</div><div class="kpi-label">N° Ventas / Piezas</div></div>
+          <div class="kpi k-ok"><div class="kpi-val">${fmt(totalIngresos)}</div><div class="kpi-label">Total Ingresos</div></div>
+          <div class="kpi k-info"><div class="kpi-val">${fmt(totalIngresos / (todas.length || 1))}</div><div class="kpi-label">Ticket Promedio</div></div>
+          <div class="kpi k-warn"><div class="kpi-val">${todas.length > 0 ? ((hasta - desde) / todas.length).toFixed(0) : 0}d</div><div class="kpi-label">Días entre ventas</div></div>
+        </div>
       </div>
-      <div class="tabla-wrap"><table>
-        <thead><tr><th>ID</th><th>Fecha</th><th>Cliente</th><th>Precio Final</th><th>Tipo</th></tr></thead>
-        <tbody>${ventas.map(v=>`<tr><td>${v.id_venta}</td><td>${v.fecha_venta}</td><td>${v.cliente}</td><td>$${v.precio_final.toFixed(2)}</td><td>${v.tipo_venta}</td></tr>`).join('')}</tbody>
-      </table></div>
+
+      <!-- MÓDULO 2: Desglose de cartera -->
+      <div class="card">
+        <div class="card-title">💼 Módulo 2 — Desglose de Cartera</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tipo</th><th>N° Ventas</th><th>Monto</th><th>% del Total</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Contado</td><td>${contado.length}</td><td>${fmt(totalContado)}</td>
+                <td>${totalIngresos > 0 ? (totalContado/totalIngresos*100).toFixed(1) : 0}%</td>
+              </tr>
+              <tr>
+                <td>Crédito</td><td>${credito.length}</td><td>${fmt(totalCredito)}</td>
+                <td>${totalIngresos > 0 ? (totalCredito/totalIngresos*100).toFixed(1) : 0}%</td>
+              </tr>
+              <tr style="font-weight:700">
+                <td>TOTAL</td><td>${todas.length}</td><td>${fmt(totalIngresos)}</td><td>100%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MÓDULO 4B: Por tipo de joya -->
+      <div class="card">
+        <div class="card-title">💍 Módulo 4B — Ventas por Tipo de Joya</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tipo</th><th>N° Piezas</th><th>Monto Vendido</th><th>% del Total</th></tr></thead>
+            <tbody>
+              ${Object.entries(porTipo).sort((a,b) => b[1].total-a[1].total).map(([tipo,dat]) => `
+                <tr>
+                  <td>${tipo}</td><td>${dat.n}</td><td>${fmt(dat.total)}</td>
+                  <td>${totalIngresos > 0 ? (dat.total/totalIngresos*100).toFixed(1) : 0}%</td>
+                </tr>
+              `).join('')}
+              <tr style="font-weight:700"><td>TOTAL</td><td>${todas.length}</td><td>${fmt(totalIngresos)}</td><td>100%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MÓDULO 3: Top clientes -->
+      <div class="card">
+        <div class="card-title">👥 Módulo 3 — Top 5 Clientes del Período</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Cliente</th><th>N° Piezas</th><th>Monto Total</th></tr></thead>
+            <tbody>
+              ${top5Cli.map(([cli,dat],i) => `
+                <tr>
+                  <td>${i+1}</td><td>${cli}</td><td>${dat.n}</td><td>${fmt(dat.total)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Detalle completo -->
+      <div class="card">
+        <div class="card-title">📋 Detalle de Ventas del Período</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Fecha</th><th>Cliente</th><th>CIP</th><th>Precio Final</th><th>Tipo</th></tr></thead>
+            <tbody>
+              ${todas.sort((a,b) => a.fecha_venta < b.fecha_venta ? 1 : -1).map(v => `
+                <tr>
+                  <td><code>${v.id_venta}</code></td>
+                  <td>${v.fecha_venta}</td>
+                  <td>${v.cliente}</td>
+                  <td><code>${v.codigo_cip}</code></td>
+                  <td>${fmt(v.precio_final)}</td>
+                  <td><span class="badge ${v.tipo_venta==='Contado'?'badge-ok':'badge-warn'}">${v.tipo_venta}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
     `;
-  } catch(e) { toast('Error al generar reporte', 'er'); }
+  } catch(e) {
+    document.getElementById('reporte-resultado').innerHTML = '<div style="color:var(--err);padding:20px">Error al generar el reporte. Verifica la conexión.</div>';
+  }
 }
 
-// ── TOAST ─────────────────────────────────────────────────────
-function toast(msg, tipo) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast ' + tipo + ' show';
-  setTimeout(() => el.className = 'toast', 4000);
+// ── AUDITORÍA ─────────────────────────────────────────────
+async function ejecutarAuditoria() {
+  const div = document.getElementById('audit-resultado');
+  div.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400)">Ejecutando auditoría...</div>';
+  try {
+    const [resumen, catalogo] = await Promise.all([
+      fetch(API + '/api/resumen').then(r => r.json()),
+      fetch(API + '/api/catalogo').then(r => r.json()),
+    ]);
+
+    const controles = [
+      { n:1, nombre:'Total productos en catálogo', val: catalogo.length + ' modelos', ok: catalogo.length > 0 },
+      { n:2, nombre:'Ventas activas registradas', val: resumen.total_ventas + ' ventas', ok: resumen.total_ventas > 0 },
+      { n:3, nombre:'Total vendido', val: fmt(resumen.monto_ventas), ok: resumen.monto_ventas > 0 },
+      { n:4, nombre:'Créditos activos', val: resumen.creditos_activos + ' créditos', ok: resumen.creditos_activos >= 0 },
+      { n:5, nombre:'Saldo por cobrar', val: fmt(resumen.saldo_cxc), ok: resumen.saldo_cxc >= 0 },
+      { n:6, nombre:'Servidor respondiendo', val: 'OK', ok: true },
+      { n:7, nombre:'Base de datos accesible', val: 'OK', ok: true },
+    ];
+
+    div.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Control</th><th>Resultado</th><th>Estado</th></tr></thead>
+          <tbody>
+            ${controles.map(c => `
+              <tr>
+                <td>${c.n}</td>
+                <td>${c.nombre}</td>
+                <td>${c.val}</td>
+                <td><span class="badge ${c.ok?'badge-ok':'badge-err'}">${c.ok?'✓ OK':'✗ Revisar'}</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:16px;padding:14px;background:var(--ok-lt);border-radius:8px;color:var(--ok);font-weight:600;text-align:center">
+        ✅ ${controles.filter(c=>c.ok).length} de ${controles.length} controles en estado OK
+      </div>
+    `;
+  } catch(e) {
+    div.innerHTML = '<div style="color:var(--err);padding:20px">Error al ejecutar auditoría.</div>';
+  }
 }
+
+// ── MÓDULO: LISTA DE VENTAS ──────────────────────────────
+let vlDatos = [];
+let vlDatosFiltrados = [];
+let vlPagina = 1;
+let vlOrden = { campo: 'fecha_venta', asc: false };
+const VL_POR_PAG = 20;
+let vlFiltroActivo = 'todo';
+
+async function cargarListaVentas() {
+  try {
+    const res = await fetch(API + '/api/ventas/todas');
+    const d = await res.json();
+    vlDatos = d.ventas || [];
+    vlFiltrar();
+  } catch(e) {
+    console.error('Error cargando ventas:', e);
+  }
+}
+
+function vlFiltroRapido(tipo, btn) {
+  vlFiltroActivo = tipo;
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Limpiar filtros de fecha al usar filtro rápido de período
+  if (['hoy','semana','mes'].includes(tipo)) {
+    document.getElementById('vl-desde').value = '';
+    document.getElementById('vl-hasta').value = '';
+    document.getElementById('vl-tipo').value = '';
+  }
+  vlFiltrar();
+}
+
+function vlFiltrar() {
+  const q = (document.getElementById('vl-buscar')?.value || '').trim().toUpperCase();
+  const desde = document.getElementById('vl-desde')?.value || '';
+  const hasta = document.getElementById('vl-hasta')?.value || '';
+  const tipo = document.getElementById('vl-tipo')?.value || '';
+  const hoyStr = hoy();
+  const semanaStr = new Date(Date.now() - 7*24*60*60*1000).toISOString().split('T')[0];
+  const mesStr = hoyStr.substring(0,7);
+
+  vlDatosFiltrados = vlDatos.filter(v => {
+    // Filtro rápido
+    if (vlFiltroActivo === 'hoy' && v.fecha_venta !== hoyStr) return false;
+    if (vlFiltroActivo === 'semana' && v.fecha_venta < semanaStr) return false;
+    if (vlFiltroActivo === 'mes' && !v.fecha_venta.startsWith(mesStr)) return false;
+    if (vlFiltroActivo === 'contado' && v.tipo_venta !== 'Contado') return false;
+    if (vlFiltroActivo === 'credito' && v.tipo_venta !== 'Crédito') return false;
+    if (vlFiltroActivo === 'pendiente' && v.saldo <= 0) return false;
+    // Filtros avanzados
+    if (desde && v.fecha_venta < desde) return false;
+    if (hasta && v.fecha_venta > hasta) return false;
+    if (tipo && v.tipo_venta !== tipo) return false;
+    if (q) {
+      const match = (v.cliente||'').toUpperCase().includes(q) ||
+                    (v.codigo_cip||'').toUpperCase().includes(q) ||
+                    (v.id_venta||'').toUpperCase().includes(q) ||
+                    (v.descripcion||'').toUpperCase().includes(q);
+      if (!match) return false;
+    }
+    return true;
+  });
+
+  // Ordenar
+  vlDatosFiltrados.sort((a,b) => {
+    let va = a[vlOrden.campo] || '';
+    let vb = b[vlOrden.campo] || '';
+    if (typeof va === 'number') return vlOrden.asc ? va-vb : vb-va;
+    return vlOrden.asc ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+
+  vlPagina = 1;
+  vlActualizarResumen();
+  vlRender();
+}
+
+function vlOrdenar(campo) {
+  if (vlOrden.campo === campo) {
+    vlOrden.asc = !vlOrden.asc;
+  } else {
+    vlOrden.campo = campo;
+    vlOrden.asc = campo === 'id_venta';
+  }
+  vlFiltrar();
+}
+
+function vlActualizarResumen() {
+  const total = vlDatosFiltrados.length;
+  const monto = vlDatosFiltrados.reduce((s,v) => s + v.precio_final, 0);
+  const contado = vlDatosFiltrados.filter(v => v.tipo_venta === 'Contado').length;
+  const credito = vlDatosFiltrados.filter(v => v.tipo_venta === 'Crédito').length;
+  const saldo = vlDatosFiltrados.reduce((s,v) => s + (v.saldo > 0 ? v.saldo : 0), 0);
+  const elTotal = document.getElementById('vl-total');
+  const elMonto = document.getElementById('vl-monto');
+  const elCont = document.getElementById('vl-contado-n');
+  const elCred = document.getElementById('vl-credito-n');
+  const elSaldo = document.getElementById('vl-saldo');
+  if (elTotal) elTotal.textContent = total;
+  if (elMonto) elMonto.textContent = fmt(monto);
+  if (elCont) elCont.textContent = contado;
+  if (elCred) elCred.textContent = credito;
+  if (elSaldo) elSaldo.textContent = fmt(saldo);
+}
+
+function vlRender() {
+  const total = vlDatosFiltrados.length;
+  const totalPags = Math.max(1, Math.ceil(total / VL_POR_PAG));
+  if (vlPagina > totalPags) vlPagina = totalPags;
+  const slice = vlDatosFiltrados.slice((vlPagina-1)*VL_POR_PAG, vlPagina*VL_POR_PAG);
+
+  // ── VISTA MÓVIL ──
+  const cards = document.getElementById('vl-cards');
+  if (cards) {
+    if (!slice.length) {
+      cards.innerHTML = '<div style="text-align:center;padding:30px;color:var(--g400)">No se encontraron ventas</div>';
+    } else {
+      cards.innerHTML = slice.map(v => `
+        <div class="vcard ${(v.tipo_venta||'').toLowerCase()}">
+          <div class="vcard-top">
+            <div>
+              <div class="vcard-id">${v.id_venta}</div>
+              <div class="vcard-cliente">${v.cliente}</div>
+              <div class="vcard-cip"><code>${v.codigo_cip}</code> · ${v.descripcion||''}</div>
+            </div>
+            <div class="vcard-fecha">${v.fecha_venta}</div>
+          </div>
+          <div class="vcard-bottom">
+            <div>
+              <div class="vcard-precio">${fmt(v.precio_final)}</div>
+              <span class="badge ${v.tipo_venta==='Contado'?'badge-ok':'badge-warn'}">${v.tipo_venta}</span>
+              <span class="badge badge-gray" style="margin-left:4px">${v.metodo_pago||''}</span>
+            </div>
+            <div class="${v.saldo>0?'vcard-saldo-pend':'vcard-saldo-ok'}">
+              ${v.saldo>0 ? 'Saldo: '+fmt(v.saldo) : '✓ Pagado'}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  // ── VISTA DESKTOP ──
+  const tbody = document.getElementById('vl-tbody');
+  if (tbody) {
+    if (!slice.length) {
+      tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--g400)">No se encontraron ventas con los filtros aplicados</td></tr>';
+    } else {
+      tbody.innerHTML = slice.map(v => `
+        <tr style="${v.estado==='ANULADA'?'opacity:.5':''}">
+          <td><code>${v.id_venta}</code></td>
+          <td>${v.fecha_venta}</td>
+          <td><strong>${v.cliente}</strong></td>
+          <td><code>${v.codigo_cip}</code></td>
+          <td style="font-size:12px;color:var(--g500);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.descripcion||'—'}</td>
+          <td><strong>${fmt(v.precio_final)}</strong></td>
+          <td style="color:var(--g500)">${v.ajuste_precio>0?'— '+fmt(v.ajuste_precio):'—'}</td>
+          <td>${v.metodo_pago||'—'}</td>
+          <td><span class="badge ${v.tipo_venta==='Contado'?'badge-ok':'badge-warn'}">${v.tipo_venta}</span></td>
+          <td>${v.saldo>0?'<strong style="color:var(--warn)">'+fmt(v.saldo)+'</strong>':'<span style="color:var(--ok)">✓ Pagado</span>'}</td>
+          <td><span class="badge ${v.estado==='Activa'?'badge-ok':'badge-err'}">${v.estado||'Activa'}</span></td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  // ── PAGINACIÓN ──
+  const info = document.getElementById('vl-info');
+  if (info) info.textContent = `${total} ventas · Página ${vlPagina} de ${totalPags}`;
+  const pags = document.getElementById('vl-pags');
+  if (pags) {
+    let html = `<button class="pag-btn" onclick="vlIrPag(${vlPagina-1})" ${vlPagina<=1?'disabled':''}>‹</button>`;
+    const desde2 = Math.max(1, vlPagina-2);
+    const hasta2 = Math.min(totalPags, vlPagina+2);
+    for (let p = desde2; p <= hasta2; p++) {
+      html += `<button class="pag-btn ${p===vlPagina?'active':''}" onclick="vlIrPag(${p})">${p}</button>`;
+    }
+    html += `<button class="pag-btn" onclick="vlIrPag(${vlPagina+1})" ${vlPagina>=totalPags?'disabled':''}>›</button>`;
+    pags.innerHTML = html;
+  }
+}
+
+function vlIrPag(p) {
+  vlPagina = p;
+  vlRender();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function vlLimpiar() {
+  document.getElementById('vl-buscar').value = '';
+  document.getElementById('vl-desde').value = '';
+  document.getElementById('vl-hasta').value = '';
+  document.getElementById('vl-tipo').value = '';
+  vlFiltroActivo = 'todo';
+  document.querySelectorAll('.filtro-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+  vlFiltrar();
+}
+
+
+// ── INICIAR ───────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-bg.show').forEach(m => m.classList.remove('show'));
+    document.getElementById('v-cip-sugs').style.display = 'none';
+  }
+});
+
+iniciarSistema();
 </script>
 </body>
 </html>
