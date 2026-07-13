@@ -172,13 +172,13 @@ textarea{resize:vertical;min-height:72px;font-size:14px}
 .btn-sm{padding:8px 14px;font-size:12px}
 
 /* Tablas */
-.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--g200)}
-table{width:100%;border-collapse:collapse;font-size:13px;min-width:500px}
-thead th{background:var(--navy);color:var(--white);padding:11px 14px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
-tbody td{padding:11px 14px;border-bottom:1px solid var(--g100);vertical-align:middle}
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--g200);-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:900px;white-space:nowrap}
+thead th{background:var(--navy);color:var(--white);padding:9px 10px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+tbody td{padding:9px 10px;border-bottom:1px solid var(--g100);vertical-align:middle;white-space:nowrap}
 tbody tr:last-child td{border-bottom:none}
 tbody tr:hover td{background:var(--g50)}
-code{font-family:'Courier New',monospace;font-size:11px;background:var(--g100);padding:2px 6px;border-radius:4px;color:var(--navy2)}
+code{font-family:'Courier New',monospace;font-size:11px;background:var(--g100);padding:2px 6px;border-radius:4px;color:var(--navy2);white-space:nowrap}
 
 /* Badges */
 .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
@@ -195,7 +195,7 @@ code{font-family:'Courier New',monospace;font-size:11px;background:var(--g100);p
 .pag-btn.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
 .pag-btn:disabled{opacity:.4;cursor:not-allowed}
 
-/* Search */
+/* Buscar */
 .search-wrap{position:relative;margin-bottom:14px}
 .search-wrap input{padding-left:38px}
 .search-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:16px;pointer-events:none}
@@ -277,7 +277,7 @@ svg.chart{display:block;width:100%;height:180px}
 @media(min-width:600px){
   .kpi-grid{grid-template-columns:repeat(4,1fr)}
   .topbar-user{display:block}
-  .content{padding:24px 24px 40px}
+  .content{padding:16px 20px 40px}
 }
 @media(min-width:900px){
   .kpi-grid{grid-template-columns:repeat(4,1fr)}
@@ -368,13 +368,13 @@ svg.chart{display:block;width:100%;height:180px}
     </div>
     <div class="topbar-right">
       <div class="topbar-user" id="topbarUser"></div>
-      <button class="topbar-logout" onclick="doLogout()">Salir</button>
+      <button class="topbar-logout" onclick="doSalir()">Salir</button>
     </div>
   </div>
 
   <!-- NAV -->
   <div class="nav-desktop" id="navDesktop">
-    <div class="nav-item active" onclick="showPanel('dashboard',this)"><span class="icon">📊</span>Dashboard</div>
+    <div class="nav-item active" onclick="showPanel('dashboard',this)"><span class="icon">📊</span>Tablero</div>
     <div class="nav-item" onclick="showPanel('ventas-lista',this);cargarListaVentas()"><span class="icon">📋</span>Ventas</div>
     <div class="nav-item" onclick="showPanel('ventas',this)"><span class="icon">🛍️</span>Nueva Venta</div>
     <div class="nav-item" onclick="showPanel('pagos',this)"><span class="icon">💰</span>Registrar Pago</div>
@@ -496,8 +496,8 @@ svg.chart{display:block;width:100%;height:180px}
   <div class="card" style="padding:14px;margin-bottom:14px">
     <div class="filtros-bar">
       <input type="text" id="vl-buscar" placeholder="🔍 Buscar cliente, CIP o ID..." oninput="vlFiltrar()"/>
-      <input type="date" id="vl-desde" onchange="vlFiltrar()" title="Desde"/>
-      <input type="date" id="vl-hasta" onchange="vlFiltrar()" title="Hasta"/>
+      <input type="date" id="vl-desde" onchange="vlFiltrar()" title="Desde (DD/MM/AAAA)"/>
+      <input type="date" id="vl-hasta" onchange="vlFiltrar()" title="Hasta (DD/MM/AAAA)"/>
       <select id="vl-tipo" onchange="vlFiltrar()">
         <option value="">Todos los tipos</option>
         <option value="Contado">Contado</option>
@@ -983,7 +983,7 @@ function doLogin() {
   }
 }
 
-function doLogout() {
+function doSalir() {
   sesion = null;
   document.getElementById('app').style.display = 'none';
   document.getElementById('loginPage').style.display = 'flex';
@@ -1000,7 +1000,13 @@ function showPanel(name, el) {
 }
 
 // ── UTILIDADES ────────────────────────────────────────────
-function hoy() { return new Date().toISOString().split('T')[0]; }
+function hoy() { return new Fecha().toISOString().split('T')[0]; }
+
+function fmtFecha(fechaStr) {
+  if (!fechaStr) return '—';
+  const [y,m,d] = fechaStr.split('-');
+  return d + '/' + m + '/' + y;
+}
 
 function fmt(n) {
   return '$' + parseFloat(n || 0).toLocaleString('en-US', {
@@ -1011,8 +1017,8 @@ function fmt(n) {
 function toast(msg, tipo = 'ok') {
   const el = document.getElementById('toast');
   el.textContent = msg;
-  el.className = 'toast ' + tipo + ' show';
-  setTimeout(() => el.className = 'toast', 4500);
+  el.classNombre = 'toast ' + tipo + ' show';
+  setTimeout(() => el.classNombre = 'toast', 4500);
 }
 
 function cerrarModal(id) {
@@ -1029,14 +1035,14 @@ function limpiarErr(...ids) {
 // ── CARGAR TODO AL INICIO ─────────────────────────────────
 async function cargarTodo() {
   await Promise.all([
-    cargarDashboard(),
+    cargarTablero(),
     cargarCatalogo(),
     cargarCXC(),
   ]);
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────
-async function cargarDashboard() {
+async function cargarTablero() {
   try {
     const [resumen, catalogo, ventas] = await Promise.all([
       fetch(API + '/api/resumen').then(r => r.json()),
@@ -1080,7 +1086,7 @@ async function cargarDashboard() {
           </div>
           <div class="venta-right">
             <div class="venta-monto">${fmt(v.precio_final)}</div>
-            <div class="venta-fecha">${v.fecha_venta}</div>
+            <div class="venta-fecha">${fmtFecha(v.fecha_venta)}</div>
           </div>
         </div>
       `).join('');
@@ -1278,7 +1284,7 @@ async function registrarVenta() {
       document.getElementById('v-precio-box').classList.remove('show');
       document.getElementById('v-fecha').value = hoy();
       precioVentaActual = 0;
-      await cargarDashboard();
+      await cargarTablero();
     } else {
       toast(d.detail || 'Error al registrar la venta', 'er');
     }
@@ -1376,7 +1382,7 @@ async function registrarPago() {
       document.getElementById('saldo-box').classList.remove('show');
       document.getElementById('p-buscar').value = '';
       document.getElementById('p-resultados').innerHTML = '';
-      await cargarDashboard();
+      await cargarTablero();
       await cargarCXC();
     } else {
       toast(d.detail || 'Error al registrar el pago', 'er');
@@ -1398,7 +1404,7 @@ async function cargarCXC() {
     tbody.innerHTML = creditos.map(v => `
       <tr>
         <td><code>${v.id_venta}</code></td>
-        <td>${v.fecha_venta}</td>
+        <td>${fmtFecha(v.fecha_venta)}</td>
         <td>${v.cliente}</td>
         <td><code>${v.codigo_cip}</code></td>
         <td>${fmt(v.precio_final)}</td>
@@ -1600,7 +1606,7 @@ async function generarReporte() {
               ${todas.sort((a,b) => a.fecha_venta < b.fecha_venta ? 1 : -1).map(v => `
                 <tr>
                   <td><code>${v.id_venta}</code></td>
-                  <td>${v.fecha_venta}</td>
+                  <td>${fmtFecha(v.fecha_venta)}</td>
                   <td>${v.cliente}</td>
                   <td><code>${v.codigo_cip}</code></td>
                   <td>${fmt(v.precio_final)}</td>
@@ -1700,7 +1706,7 @@ function vlFiltrar() {
   const hasta = document.getElementById('vl-hasta')?.value || '';
   const tipo = document.getElementById('vl-tipo')?.value || '';
   const hoyStr = hoy();
-  const semanaStr = new Date(Date.now() - 7*24*60*60*1000).toISOString().split('T')[0];
+  const semanaStr = new Fecha(Fecha.now() - 7*24*60*60*1000).toISOString().split('T')[0];
   const mesStr = hoyStr.substring(0,7);
 
   vlDatosFiltrados = vlDatos.filter(v => {
@@ -1786,7 +1792,7 @@ function vlRender() {
               <div class="vcard-cliente">${v.cliente}</div>
               <div class="vcard-cip"><code>${v.codigo_cip}</code> · ${v.descripcion||''}</div>
             </div>
-            <div class="vcard-fecha">${v.fecha_venta}</div>
+            <div class="vcard-fecha">${fmtFecha(v.fecha_venta)}</div>
           </div>
           <div class="vcard-bottom">
             <div>
@@ -1812,10 +1818,10 @@ function vlRender() {
       tbody.innerHTML = slice.map(v => `
         <tr style="${v.estado==='ANULADA'?'opacity:.5':''}">
           <td><code>${v.id_venta}</code></td>
-          <td>${v.fecha_venta}</td>
+          <td>${fmtFecha(v.fecha_venta)}</td>
           <td><strong>${v.cliente}</strong></td>
           <td><code>${v.codigo_cip}</code></td>
-          <td style="font-size:12px;color:var(--g500);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.descripcion||'—'}</td>
+          <td style="font-size:11px;color:var(--g500)">${v.descripcion||'—'}</td>
           <td><strong>${fmt(v.precio_final)}</strong></td>
           <td style="color:var(--g500)">${v.ajuste_precio>0?'— '+fmt(v.ajuste_precio):'—'}</td>
           <td>${v.metodo_pago||'—'}</td>
