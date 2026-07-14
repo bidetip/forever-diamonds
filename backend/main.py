@@ -5,7 +5,7 @@ from typing import Optional
 from datetime import date
 import database
 
-app = FastAPI(title="Forever Diamonds API", version="2.0.0")
+app = FastAPI(title="Forever Diamonds API", version="3.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -40,7 +40,7 @@ class NuevoCliente(BaseModel):
 
 @app.get("/")
 def inicio():
-    return {"sistema": "Forever Diamonds", "estado": "activo", "version": "2.0.0"}
+    return {"sistema": "Forever Diamonds", "estado": "activo", "version": "3.0.0"}
 
 @app.get("/api/status")
 def status():
@@ -55,8 +55,7 @@ def stock_resumen():
     conn = database.get_conn()
     cur = conn.cursor()
     stocks = cur.execute("""
-        SELECT
-            c.codigo_cip,
+        SELECT c.codigo_cip,
             COALESCE(SUM(c.cantidad),0) - COALESCE(v.vendidas,0) + COALESCE(d.devueltas,0) as stock_real
         FROM compras c
         LEFT JOIN (SELECT codigo_cip, COUNT(*) as vendidas FROM ventas WHERE estado='Activa' GROUP BY codigo_cip) v ON c.codigo_cip = v.codigo_cip
@@ -242,7 +241,7 @@ def resumen():
         FROM ventas v
         LEFT JOIN (SELECT id_venta, SUM(monto) as pagado FROM pagos GROUP BY id_venta) p
         ON v.id_venta = p.id_venta
-        WHERE v.tipo_venta='Crédito' AND v.estado='Activa'
+        WHERE v.tipo_venta='Credito' AND v.estado='Activa'
         AND ROUND(v.precio_final - COALESCE(p.pagado,0), 2) > 0
     """).fetchone()
     conn.close()
@@ -251,6 +250,73 @@ def resumen():
         "monto_ventas": round(total_ventas[1], 2),
         "creditos_activos": cxc[0],
         "saldo_cxc": round(cxc[1], 2)
+    }
+
+@app.get("/api/estado-resultados")
+def estado_resultados(desde: Optional[str] = None, hasta: Optional[str] = None):
+    conn = database.get_conn()
+    cur = conn.cursor()
+    filtro = "WHERE v.estado='Activa'"
+    params = []
+    if desde:
+        filtro += " AND v.fecha_venta >= ?"
+        params.append(desde)
+    if hasta:
+        filtro += " AND v.fecha_venta <= ?"
+        params.append(hasta)
+    r = cur.execute(f"""
+        SELECT COUNT(*) as n_ventas,
+            COALESCE(SUM(v.precio_venta),0) as precio_teorico,
+            COALESCE(SUM(v.ajuste_precio),0) as total_ajustes,
+            COALESCE(SUM(v.precio_final),0) as ventas_brutas,
+            COALESCE(SUM(v.costo_adq),0) as costo_landed
+        FROM ventas v {filtro}
+    """, params).fetchone()
+    filtro_dev = "WHERE 1=1"
+    params_dev = []
+    if desde:
+        filtro_dev += " AND fecha_devolucion >= ?"
+        params_dev.append(desde)
+    if hasta:
+        filtro_dev += " AND fecha_devolucion <= ?"
+        params_dev.append(hasta)
+    dev = cur.execute(f"SELECT COALESCE(SUM(monto_devolver),0) as total_dev FROM devoluciones {filtro_dev}", params_dev).fetchone()
+    filtro_op = "WHERE 1=1"
+    params_op = []
+    if desde:
+        filtro_op += " AND fecha >= ?"
+        params_op.append(desde)
+    if hasta:
+        filtro_op += " AND fecha <= ?"
+        params_op.append(hasta)
+    opex = cur.execute(f"SELECT COALESCE(SUM(monto),0) as total_opex FROM gastos_operativos {filtro_op}", params_op).fetchone()
+    conn.close()
+    ventas_brutas = round(r['ventas_brutas'], 2)
+    precio_teorico = round(r['precio_teorico'], 2)
+    total_ajustes = round(r['total_ajustes'], 2)
+    costo_landed = round(r['costo_landed'], 2)
+    total_dev = round(dev['total_dev'], 2)
+    total_opex = round(opex['total_opex'], 2)
+    ingresos_netos = round(ventas_brutas - total_dev, 2)
+    ganancia_bruta = round(ingresos_netos - costo_landed, 2)
+    margen_bruto = round(ganancia_bruta / ingresos_netos * 100, 2) if ingresos_netos > 0 else 0
+    markup = round(ganancia_bruta / costo_landed * 100, 2) if costo_landed > 0 else 0
+    ganancia_neta = round(ganancia_bruta - total_opex, 2)
+    margen_neto = round(ganancia_neta / ingresos_netos * 100, 2) if ingresos_netos > 0 else 0
+    return {
+        "n_ventas": r['n_ventas'],
+        "precio_teorico": precio_teorico,
+        "total_ajustes": total_ajustes,
+        "ventas_brutas": ventas_brutas,
+        "total_devoluciones": total_dev,
+        "ingresos_netos": ingresos_netos,
+        "costo_landed": costo_landed,
+        "ganancia_bruta": ganancia_bruta,
+        "margen_bruto_pct": margen_bruto,
+        "markup_pct": markup,
+        "opex": total_opex,
+        "ganancia_neta": ganancia_neta,
+        "margen_neto_pct": margen_neto
     }
 
 if __name__ == "__main__":
