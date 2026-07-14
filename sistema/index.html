@@ -299,7 +299,7 @@ code{font-family:'Courier New',monospace;font-size:11px;background:var(--g100);p
           <div class="precio-row sep"><span>Precio Final</span><span id="vp-final" style="font-size:18px">—</span></div>
           <div id="vp-stock"></div>
         </div>
-        <div class="field"><label class="lbl">Fecha de Venta <span class="req">*</span></label><input type="date" id="v-fecha" onchange="calcularPrecio()"/></div>
+        <div class="field"><label class="lbl">Fecha de Venta <span class="req">*</span></label><input type="date" id="v-fecha" onchange="calcularPrecio();mostrarFechaPeruana(this,'v-fecha-txt')"/><div id="v-fecha-txt" style="font-size:11px;color:var(--g500);margin-top:4px"></div></div>
         <div class="field">
           <label class="lbl">Cliente <span class="req">*</span></label>
           <input type="text" id="v-cliente" placeholder="Nombre del cliente..." autocomplete="off" oninput="onClienteInput()"/>
@@ -328,7 +328,7 @@ code{font-family:'Courier New',monospace;font-size:11px;background:var(--g100);p
       <div class="saldo-box" id="saldo-box">
         <div class="card-title" style="margin-bottom:12px">Resumen de la Venta</div>
         <div id="saldo-resumen"></div>
-        <div class="field" style="margin-top:14px"><label class="lbl">Fecha del Pago <span class="req">*</span></label><input type="date" id="p-fecha"/></div>
+        <div class="field" style="margin-top:14px"><label class="lbl">Fecha del Pago <span class="req">*</span></label><input type="date" id="p-fecha" onchange="mostrarFechaPeruana(this,'p-fecha-txt')"/><div id="p-fecha-txt" style="font-size:11px;color:var(--g500);margin-top:4px"></div></div>
         <div class="field"><label class="lbl">Monto (USD) <span class="req">*</span></label><input type="number" id="p-monto" placeholder="0.00" step="0.01" min="0.01"/></div>
         <div class="field"><label class="lbl">Método de Pago <span class="req">*</span></label>
           <select id="p-metodo"><option value="">— Seleccionar —</option><option>Efectivo</option><option>Tarjeta Crédito</option><option>Tarjeta Débito</option><option>Transferencia</option></select></div>
@@ -396,6 +396,11 @@ var VL_POR_PAG = 20;
 
 // UTILIDADES
 function hoy() { return new Date().toISOString().split('T')[0]; }
+function mostrarFechaPeruana(input, divId) {
+  var div = document.getElementById(divId);
+  if(div && input.value) div.textContent = 'Fecha seleccionada: ' + fmtFecha(input.value);
+  else if(div) div.textContent = '';
+}
 function fmtFecha(f) { if(!f)return'—'; var p=f.split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:f; }
 function fmt(n) { return '$'+parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function toast(msg,tipo) { var el=document.getElementById('toast'); el.textContent=msg; el.className='toast '+(tipo||'ok')+' show'; setTimeout(function(){el.className='toast';},4500); }
