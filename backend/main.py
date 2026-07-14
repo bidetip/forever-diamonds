@@ -14,7 +14,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── MODELOS ───────────────────────────────────────────────
 class NuevaVenta(BaseModel):
     codigo_cip: str
     fecha_venta: str
@@ -39,7 +38,6 @@ class NuevoCliente(BaseModel):
     email: Optional[str] = ""
     notas: Optional[str] = ""
 
-# ── STATUS ────────────────────────────────────────────────
 @app.get("/")
 def inicio():
     return {"sistema": "Forever Diamonds", "estado": "activo", "version": "2.0.0"}
@@ -48,19 +46,32 @@ def inicio():
 def status():
     return {"status": "OK"}
 
-# ── CATÁLOGO Y STOCK ──────────────────────────────────────
 @app.get("/api/catalogo")
 def catalogo():
     return database.get_catalogo()
 
+@app.get("/api/stock/resumen")
+def stock_resumen():
+    conn = database.get_conn()
+    cur = conn.cursor()
+    stocks = cur.execute("""
+        SELECT
+            c.codigo_cip,
+            COALESCE(SUM(c.cantidad),0) - COALESCE(v.vendidas,0) + COALESCE(d.devueltas,0) as stock_real
+        FROM compras c
+        LEFT JOIN (SELECT codigo_cip, COUNT(*) as vendidas FROM ventas WHERE estado='Activa' GROUP BY codigo_cip) v ON c.codigo_cip = v.codigo_cip
+        LEFT JOIN (SELECT codigo_cip, COUNT(*) as devueltas FROM devoluciones WHERE estado='Procesada' GROUP BY codigo_cip) d ON c.codigo_cip = d.codigo_cip
+        GROUP BY c.codigo_cip
+    """).fetchall()
+    conn.close()
+    agotados = sum(1 for s in stocks if s['stock_real'] <= 0)
+    con_stock = sum(1 for s in stocks if s['stock_real'] > 0)
+    return {"total": len(stocks), "con_stock": con_stock, "agotados": agotados}
+
 @app.get("/api/stock/{codigo_cip}")
 def stock(codigo_cip: str):
     disponible = database.get_stock(codigo_cip)
-    return {
-        "codigo_cip": codigo_cip,
-        "stock_disponible": disponible,
-        "disponible": disponible > 0
-    }
+    return {"codigo_cip": codigo_cip, "stock_disponible": disponible, "disponible": disponible > 0}
 
 @app.get("/api/precio/{codigo_cip}")
 def precio(codigo_cip: str, fecha: str = str(date.today())):
@@ -69,7 +80,6 @@ def precio(codigo_cip: str, fecha: str = str(date.today())):
         raise HTTPException(status_code=404, detail=resultado["error"])
     return resultado
 
-# ── VENTAS ────────────────────────────────────────────────
 @app.get("/api/ventas/todas")
 def todas_las_ventas(
     desde: Optional[str] = None,
@@ -77,10 +87,8 @@ def todas_las_ventas(
     tipo: Optional[str] = None,
     cliente: Optional[str] = None
 ):
-    """Retorna todas las ventas con filtros opcionales."""
     conn = database.get_conn()
     cur = conn.cursor()
-
     query = """
         SELECT v.id_venta, v.codigo_cip, v.descripcion, v.cliente,
                v.fecha_venta, v.precio_venta, v.ajuste_precio,
@@ -92,7 +100,6 @@ def todas_las_ventas(
         WHERE 1=1
     """
     params = []
-
     if desde:
         query += " AND v.fecha_venta >= ?"
         params.append(desde)
@@ -105,19 +112,15 @@ def todas_las_ventas(
     if cliente:
         query += " AND UPPER(v.cliente) LIKE ?"
         params.append(f"%{cliente.upper()}%")
-
     query += " GROUP BY v.id_venta ORDER BY v.fecha_venta DESC, v.id DESC"
-
     ventas = cur.execute(query, params).fetchall()
     conn.close()
-
     result = []
     for row in ventas:
         v = dict(row)
         v['saldo'] = round(v['precio_final'] - v['total_pagado'], 2)
         v['pagado_completo'] = v['saldo'] <= 0
         result.append(v)
-
     return {
         "ventas": result,
         "total": len(result),
@@ -140,40 +143,32 @@ def buscar(q: str):
 def nueva_venta(venta: NuevaVenta):
     stock_disponible = database.get_stock(venta.codigo_cip)
     if stock_disponible <= 0:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Sin stock disponible para {venta.codigo_cip}"
-        )
+        raise HTTPException(status_code=400, detail="Sin stock disponible para " + venta.codigo_cip)
     precio_info = database.get_precio_venta(venta.codigo_cip, venta.fecha_venta)
     if "error" in precio_info:
         raise HTTPException(status_code=400, detail=precio_info["error"])
-
     precio_venta = precio_info["precio_venta"]
     precio_final = round(precio_venta - venta.ajuste_precio, 2)
-
     datos = {
-        "codigo_cip":    venta.codigo_cip,
-        "fecha_venta":   venta.fecha_venta,
-        "cliente":       venta.cliente,
-        "precio_venta":  precio_venta,
+        "codigo_cip": venta.codigo_cip,
+        "fecha_venta": venta.fecha_venta,
+        "cliente": venta.cliente,
+        "precio_venta": precio_venta,
         "ajuste_precio": venta.ajuste_precio,
-        "precio_final":  precio_final,
-        "metodo_pago":   venta.metodo_pago,
-        "tipo_venta":    venta.tipo_venta,
-        "vendedor":      venta.vendedor,
+        "precio_final": precio_final,
+        "metodo_pago": venta.metodo_pago,
+        "tipo_venta": venta.tipo_venta,
+        "vendedor": venta.vendedor,
         "observaciones": venta.observaciones or "",
-        "costo_adq":     precio_info["costo_landed"],
+        "costo_adq": precio_info["costo_landed"],
     }
     resultado = database.registrar_venta(datos)
     if "error" in resultado:
         raise HTTPException(status_code=500, detail=resultado["error"])
-
-    # Registrar cliente si no existe
     database.registrar_cliente_si_no_existe(venta.cliente)
-
     resultado["precio_venta"] = precio_venta
     resultado["precio_final"] = precio_final
-    resultado["mensaje"] = f"Venta {resultado['id_venta']} registrada — Precio Final: ${precio_final:,.2f}"
+    resultado["mensaje"] = "Venta " + resultado["id_venta"] + " registrada"
     return resultado
 
 @app.get("/api/ventas/{id_venta}/saldo")
@@ -183,7 +178,6 @@ def saldo(id_venta: str):
         raise HTTPException(status_code=404, detail=resultado["error"])
     return resultado
 
-# ── PAGOS ─────────────────────────────────────────────────
 @app.post("/api/pagos")
 def nuevo_pago(pago: NuevoPago):
     if pago.monto <= 0:
@@ -192,32 +186,24 @@ def nuevo_pago(pago: NuevoPago):
     if "error" in resultado:
         raise HTTPException(status_code=400, detail=resultado["error"])
     if resultado.get("pagado_completo"):
-        resultado["mensaje"] = "¡Venta pagada al 100%!"
+        resultado["mensaje"] = "Venta pagada al 100%"
     else:
-        resultado["mensaje"] = f"Pago registrado. Saldo restante: ${resultado['nuevo_saldo']:,.2f}"
+        resultado["mensaje"] = "Pago registrado correctamente"
     return resultado
 
-# ── CLIENTES ──────────────────────────────────────────────
 @app.get("/api/clientes")
 def listar_clientes(q: Optional[str] = None):
-    """Lista clientes, con búsqueda opcional."""
     conn = database.get_conn()
     cur = conn.cursor()
     if q:
-        rows = cur.execute(
-            "SELECT * FROM clientes WHERE UPPER(nombre) LIKE ? ORDER BY nombre",
-            (f"%{q.upper()}%",)
-        ).fetchall()
+        rows = cur.execute("SELECT * FROM clientes WHERE UPPER(nombre) LIKE ? ORDER BY nombre", (f"%{q.upper()}%",)).fetchall()
     else:
-        rows = cur.execute(
-            "SELECT * FROM clientes ORDER BY nombre"
-        ).fetchall()
+        rows = cur.execute("SELECT * FROM clientes ORDER BY nombre").fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
 @app.post("/api/clientes")
 def nuevo_cliente(cliente: NuevoCliente):
-    """Registra un cliente nuevo."""
     if not cliente.nombre.strip():
         raise HTTPException(status_code=400, detail="El nombre es obligatorio")
     conn = database.get_conn()
@@ -230,27 +216,12 @@ def nuevo_cliente(cliente: NuevoCliente):
         conn.commit()
         id_nuevo = cur.lastrowid
         conn.close()
-        return {"success": True, "id": id_nuevo, "nombre": cliente.nombre.strip(), "mensaje": f"Cliente '{cliente.nombre}' registrado correctamente"}
+        return {"success": True, "id": id_nuevo, "nombre": cliente.nombre.strip()}
     except Exception as e:
         conn.rollback()
         conn.close()
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/clientes/buscar")
-def buscar_clientes(q: str):
-    """Busca clientes para el autocompletado."""
-    if len(q) < 1:
-        return []
-    conn = database.get_conn()
-    cur = conn.cursor()
-    rows = cur.execute(
-        "SELECT nombre FROM clientes WHERE UPPER(nombre) LIKE ? ORDER BY nombre LIMIT 10",
-        (f"%{q.upper()}%",)
-    ).fetchall()
-    conn.close()
-    return [r['nombre'] for r in rows]
-
-# ── PROVEEDORES ───────────────────────────────────────────
 @app.get("/api/proveedores")
 def proveedores():
     conn = database.get_conn()
@@ -259,16 +230,13 @@ def proveedores():
     conn.close()
     return [dict(r) for r in rows]
 
-# ── RESUMEN DASHBOARD ─────────────────────────────────────
 @app.get("/api/resumen")
 def resumen():
     conn = database.get_conn()
     cur = conn.cursor()
-
     total_ventas = cur.execute(
         "SELECT COUNT(*), COALESCE(SUM(precio_final),0) FROM ventas WHERE estado='Activa'"
     ).fetchone()
-
     cxc = cur.execute("""
         SELECT COUNT(*), COALESCE(SUM(v.precio_final - COALESCE(p.pagado,0)),0)
         FROM ventas v
@@ -277,13 +245,12 @@ def resumen():
         WHERE v.tipo_venta='Crédito' AND v.estado='Activa'
         AND ROUND(v.precio_final - COALESCE(p.pagado,0), 2) > 0
     """).fetchone()
-
     conn.close()
     return {
-        "total_ventas":     total_ventas[0],
-        "monto_ventas":     round(total_ventas[1], 2),
+        "total_ventas": total_ventas[0],
+        "monto_ventas": round(total_ventas[1], 2),
         "creditos_activos": cxc[0],
-        "saldo_cxc":        round(cxc[1], 2)
+        "saldo_cxc": round(cxc[1], 2)
     }
 
 if __name__ == "__main__":
