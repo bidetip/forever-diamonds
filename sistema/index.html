@@ -449,6 +449,14 @@ async function cargarDashboard() {
     document.getElementById('d-cxc-sub').textContent = fmt(d.saldo_cxc)+' pendiente';
     document.getElementById('d-cxc').textContent = fmt(d.saldo_cxc);
     document.getElementById('d-ganancia').textContent = fmt(d.monto_ventas);
+    // Cargar stock real
+    try {
+      var sr = await fetch(API+'/api/stock/resumen');
+      var st = await sr.json();
+      document.getElementById('d-productos').textContent = st.total;
+      document.getElementById('d-enstock').textContent = st.con_stock;
+      document.getElementById('d-agotados').textContent = st.agotados;
+    } catch(e2){}
     // Alertas
     var alertas = [];
     if((d.creditos_activos||0)>0) alertas.push({txt:(d.creditos_activos)+' crédito(s) pendiente(s)',sub:'Saldo: '+fmt(d.saldo_cxc)});
