@@ -968,42 +968,42 @@ let buscarTimer = null;
 
 // ── SPLASH / INICIO ───────────────────────────────────────
 async function iniciarSistema() {
-  const bar = document.getElementById('splashBar');
-  const pct = document.getElementById('splashPct');
-  const msg = document.getElementById('splashMsg');
-  let progreso = 0;
+  var bar = document.getElementById('splashBar');
+  var pct = document.getElementById('splashPct');
+  var msg = document.getElementById('splashMsg');
+  var progreso = 0;
 
-  // Simular progreso mientras esperamos al servidor
-  const intervalo = setInterval(() => {
-    if (progreso < 85) {
-      progreso += Math.random() * 8;
-      bar.style.width = Math.min(progreso, 85) + '%';
-      pct.textContent = Math.round(Math.min(progreso, 85)) + '%';
-    }
-  }, 800);
+  var intervalo = setInterval(function() {
+    if (progreso < 90) { progreso += 3; bar.style.width = progreso + '%'; pct.textContent = progreso + '%'; }
+  }, 500);
 
-  try {
-    msg.textContent = 'Despertando el servidor...\nEsto puede tomar hasta 50 segundos si el sistema estuvo inactivo.';
-    const res = await fetch(API + '/api/status', { signal: AbortSignal.timeout(60000) });
-    if (res.ok) {
-      clearInterval(intervalo);
-      progreso = 100;
-      bar.style.width = '100%';
-      pct.textContent = '100%';
-      msg.textContent = '¡Sistema listo!';
-      setTimeout(() => {
-        document.getElementById('splash').classList.add('fade');
-        setTimeout(() => {
-          document.getElementById('splash').style.display = 'none';
-          document.getElementById('loginPage').style.display = 'flex';
-        }, 500);
-      }, 400);
-    }
-  } catch(e) {
+  function mostrarLogin() {
     clearInterval(intervalo);
-    msg.textContent = 'Error al conectar. Verifica tu internet e intenta de nuevo.';
-    pct.textContent = 'Error';
+    bar.style.width = '100%'; pct.textContent = '100%'; msg.textContent = '✓ Listo';
+    setTimeout(function() {
+      document.getElementById('splash').style.display = 'none';
+      document.getElementById('loginPage').style.display = 'flex';
+    }, 300);
+    setInterval(function() { fetch(API + '/api/status').catch(function(){}); }, 840000);
   }
+
+  function intentar(n) {
+    msg.textContent = 'Conectando con el servidor... (intento ' + n + ' de 5)\nEsto puede tomar hasta 60 segundos si el sistema estuvo inactivo.';
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', API + '/api/status', true);
+    xhr.timeout = 20000;
+    xhr.onload = function() { if (xhr.status === 200) { mostrarLogin(); } else { reintentar(n); } };
+    xhr.ontimeout = function() { reintentar(n); };
+    xhr.onerror = function() { reintentar(n); };
+    xhr.send();
+  }
+
+  function reintentar(n) {
+    if (n < 5) { setTimeout(function(){ intentar(n+1); }, 4000); }
+    else { clearInterval(intervalo); msg.textContent = 'No se pudo conectar. Por favor recarga la página.'; pct.textContent = 'Error'; }
+  }
+
+  intentar(1);
 }
 
 // ── LOGIN / LOGOUT ────────────────────────────────────────
