@@ -529,40 +529,60 @@ table{width:max-content;min-width:100%;border-collapse:collapse;font-size:12px;w
       </div>
     </div>
 
-    <!-- ══ NUEVA VENTA ═════════════════════════════════════ -->
+        <!-- ══ NUEVA VENTA ═════════════════════════════════════ -->
     <div class="panel" id="panel-ventas">
       <div class="card">
         <div class="card-title">🛍️ Registrar Nueva Venta</div>
 
+        <!-- PASO 1: Buscar CIP -->
         <div class="field">
           <label class="lbl">Código CIP <span class="req">*</span></label>
-          <input type="text" id="v-cip" placeholder="Ej: FD-AN-18KW-00447"
-            autocapitalize="characters" autocomplete="off" spellcheck="false"
-            oninput="onCIPInput()"/>
-          <div id="v-cip-sugs" style="display:none;background:var(--white);border:1px solid var(--g200);border-radius:8px;margin-top:4px;max-height:200px;overflow-y:auto;box-shadow:var(--shadow-md)"></div>
+          <div style="position:relative">
+            <input type="text" id="v-cip" placeholder="Escribe código, descripción o material..."
+              autocomplete="off" spellcheck="false" oninput="onCIPInput()" style="padding-right:36px"/>
+            <span id="v-cip-loading" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--g400)">⏳</span>
+          </div>
+          <div id="v-cip-sugs" style="display:none;background:var(--white);border:1.5px solid var(--gold);border-radius:8px;margin-top:4px;max-height:240px;overflow-y:auto;box-shadow:var(--shadow-md);z-index:50;position:relative"></div>
         </div>
 
+        <!-- Preview precio -->
         <div class="precio-preview" id="v-precio-box">
+          <div class="precio-row"><span class="lbl2">Descripción</span><span class="val2" id="vp-desc" style="font-size:12px;color:var(--g500)">—</span></div>
           <div class="precio-row"><span class="lbl2">Costo Landed</span><span class="val2" id="vp-costo">—</span></div>
           <div class="precio-row"><span class="lbl2">Factor de Venta</span><span class="val2" id="vp-factor">—</span></div>
           <div class="precio-row"><span class="lbl2">Precio de Venta</span><span class="val2" id="vp-precio">—</span></div>
           <div class="precio-row"><span class="lbl2">Ajuste / Descuento</span><span class="val2" id="vp-ajuste">— $0.00</span></div>
-          <div class="precio-row sep"><span>Precio Final</span><span id="vp-final">—</span></div>
-          <div id="vp-stock-chip"></div>
+          <div class="precio-row sep"><span>Precio Final</span><span id="vp-final" style="font-size:18px">—</span></div>
+          <div id="vp-stock-chip" style="margin-top:8px"></div>
         </div>
 
+        <!-- PASO 2: Fecha -->
         <div class="field">
           <label class="lbl">Fecha de Venta <span class="req">*</span></label>
           <input type="date" id="v-fecha" onchange="calcularPrecioVenta()"/>
         </div>
+
+        <!-- PASO 3: Cliente con autocompletado -->
         <div class="field">
           <label class="lbl">Cliente <span class="req">*</span></label>
-          <input type="text" id="v-cliente" placeholder="Nombre completo del cliente" autocomplete="off"/>
+          <div style="position:relative">
+            <input type="text" id="v-cliente" placeholder="Escribe el nombre del cliente..."
+              autocomplete="off" oninput="onClienteInput()" onblur="setTimeout(()=>{document.getElementById('v-cli-sugs').style.display='none'},200)"/>
+          </div>
+          <div id="v-cli-sugs" style="display:none;background:var(--white);border:1.5px solid var(--gold);border-radius:8px;margin-top:4px;max-height:180px;overflow-y:auto;box-shadow:var(--shadow-md);position:relative;z-index:50"></div>
+          <div id="v-cliente-nuevo" style="display:none;margin-top:8px;padding:10px;background:var(--info-lt);border-radius:8px;border:1px solid var(--info)">
+            <span style="font-size:13px;color:var(--info-blue,#1A4F8A)">⚠️ Cliente nuevo — se registrará automáticamente al guardar la venta.</span>
+          </div>
         </div>
+
+        <!-- PASO 4: Ajuste -->
         <div class="field">
           <label class="lbl">Ajuste de Precio (USD)</label>
           <input type="number" id="v-ajuste" placeholder="0.00" step="0.01" min="0" value="0" oninput="actualizarPrecioFinal()"/>
+          <div style="font-size:11px;color:var(--g500);margin-top:4px">Dejar en 0 si no hay descuento</div>
         </div>
+
+        <!-- PASO 5: Método y tipo -->
         <div class="grid2">
           <div class="field">
             <label class="lbl">Método de Pago <span class="req">*</span></label>
@@ -585,13 +605,50 @@ table{width:max-content;min-width:100%;border-collapse:collapse;font-size:12px;w
             </select>
           </div>
         </div>
+
         <div class="field">
           <label class="lbl">Observaciones</label>
           <textarea id="v-obs" placeholder="Notas adicionales sobre la venta..."></textarea>
         </div>
-        <button class="btn btn-primary btn-full" id="btn-venta" onclick="registrarVenta()">
-          Registrar Venta
+
+        <button class="btn btn-primary btn-full" id="btn-venta" onclick="abrirConfirmacionVenta()">
+          Revisar y Confirmar Venta
         </button>
+      </div>
+    </div>
+
+    <!-- MODAL CONFIRMACIÓN VENTA -->
+    <div class="modal-bg" id="modalConfVenta">
+      <div class="modal">
+        <div class="modal-title">✅ Confirmar Venta</div>
+        <div id="conf-resumen" style="background:var(--g50);border-radius:8px;padding:14px;margin-bottom:20px;font-size:13px"></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-secondary" style="flex:1" onclick="cerrarModal('modalConfVenta')">Cancelar</button>
+          <button class="btn btn-primary" style="flex:2" id="btn-conf-venta" onclick="registrarVenta()">✓ Confirmar y Registrar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL NUEVO CLIENTE -->
+    <div class="modal-bg" id="modalNuevoCliente">
+      <div class="modal">
+        <div class="modal-title">👤 Registrar Nuevo Cliente</div>
+        <div class="field">
+          <label class="lbl">Nombre Completo <span class="req">*</span></label>
+          <input type="text" id="nc-nombre" placeholder="Nombre del cliente"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Teléfono</label>
+          <input type="text" id="nc-telefono" placeholder="Ej: +51 999 999 999"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Email</label>
+          <input type="email" id="nc-email" placeholder="correo@ejemplo.com"/>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button class="btn btn-secondary" style="flex:1" onclick="cerrarModal('modalNuevoCliente')">Cancelar</button>
+          <button class="btn btn-primary" style="flex:2" onclick="registrarNuevoCliente()">Registrar Cliente</button>
+        </div>
       </div>
     </div>
 
@@ -1025,6 +1082,7 @@ async function cargarTodo() {
     cargarDashboard(),
     cargarCatalogo(),
     cargarCXC(),
+    cargarClientesCache(),
   ]);
 }
 
@@ -1817,6 +1875,243 @@ function vlLimpiar() {
   vlFiltrar();
 }
 
+
+
+// ── NUEVA VENTA ───────────────────────────────────────────
+let cipTimer = null;
+let cliTimer = null;
+let precioVentaActual = 0;
+let clientesCache = [];
+
+async function cargarClientesCache() {
+  try {
+    const res = await fetch(API + '/api/clientes');
+    clientesCache = await res.json();
+  } catch(e) {}
+}
+
+function onCIPInput() {
+  const val = document.getElementById('v-cip').value.trim().toUpperCase();
+  const sugs = document.getElementById('v-cip-sugs');
+  if (val.length >= 2) {
+    const matches = catalogoData.filter(function(p) {
+      return p.codigo_cip.toUpperCase().indexOf(val) >= 0 ||
+             (p.descripcion||'').toUpperCase().indexOf(val) >= 0 ||
+             (p.material||'').toUpperCase().indexOf(val) >= 0;
+    }).slice(0, 8);
+    if (matches.length) {
+      sugs.style.display = 'block';
+      sugs.innerHTML = matches.map(function(p) {
+        var stockBadge = p.unidades_compradas > 0
+          ? '<span style="color:var(--ok);font-size:11px">✓ ' + p.unidades_compradas + ' en stock</span>'
+          : '<span style="color:var(--err);font-size:11px">✗ Sin stock</span>';
+        return '<div onclick="selCIP('' + p.codigo_cip + '')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--g100);display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='var(--g50)'" onmouseout="this.style.background=''">' +
+          '<div><div style="font-weight:700;font-size:13px">' + p.codigo_cip + '</div>' +
+          '<div style="font-size:11px;color:var(--g500)">' + (p.descripcion||'') + ' · ' + (p.material||'') + '</div></div>' +
+          stockBadge + '</div>';
+      }).join('');
+    } else {
+      sugs.style.display = 'none';
+    }
+  } else {
+    sugs.style.display = 'none';
+  }
+  clearTimeout(cipTimer);
+  cipTimer = setTimeout(calcularPrecioVenta, 700);
+}
+
+function selCIP(cip) {
+  document.getElementById('v-cip').value = cip;
+  document.getElementById('v-cip-sugs').style.display = 'none';
+  calcularPrecioVenta();
+}
+
+async function calcularPrecioVenta() {
+  const cip = document.getElementById('v-cip').value.trim();
+  const fecha = document.getElementById('v-fecha').value;
+  if (!cip || !fecha) return;
+  try {
+    const precioRes = await fetch(API + '/api/precio/' + encodeURIComponent(cip) + '?fecha=' + fecha);
+    const stockRes = await fetch(API + '/api/stock/' + encodeURIComponent(cip));
+    const precio = await precioRes.json();
+    const stock = await stockRes.json();
+    if (precio.precio_venta) {
+      precioVentaActual = precio.precio_venta;
+      // Buscar descripción en catálogo
+      var prod = catalogoData.find(function(p){return p.codigo_cip === cip;});
+      document.getElementById('vp-desc').textContent = prod ? (prod.descripcion||'—') : '—';
+      document.getElementById('vp-costo').textContent = fmt(precio.costo_landed);
+      document.getElementById('vp-factor').textContent = precio.factor_venta + 'x';
+      document.getElementById('vp-precio').textContent = fmt(precio.precio_venta);
+      actualizarPrecioFinal();
+      document.getElementById('v-precio-box').classList.add('show');
+      var st = stock.stock_disponible;
+      document.getElementById('vp-stock-chip').innerHTML = '<span class="stock-chip ' + (st>0?'ok':'err') + '">' + (st>0?'✓ '+st+' unidad(es) disponible(s)':'✗ Sin stock — no se puede vender') + '</span>';
+    } else {
+      document.getElementById('v-precio-box').classList.remove('show');
+      precioVentaActual = 0;
+    }
+  } catch(e) {}
+}
+
+function actualizarPrecioFinal() {
+  const ajuste = parseFloat(document.getElementById('v-ajuste').value) || 0;
+  const final = precioVentaActual - ajuste;
+  document.getElementById('vp-ajuste').textContent = '— ' + fmt(ajuste);
+  document.getElementById('vp-final').textContent = fmt(final);
+}
+
+function onClienteInput() {
+  const val = document.getElementById('v-cliente').value.trim();
+  const sugs = document.getElementById('v-cli-sugs');
+  const nuevoDiv = document.getElementById('v-cliente-nuevo');
+  if (val.length >= 2) {
+    const matches = clientesCache.filter(function(c) {
+      return (c.nombre||'').toUpperCase().indexOf(val.toUpperCase()) >= 0;
+    }).slice(0, 8);
+    if (matches.length) {
+      sugs.style.display = 'block';
+      sugs.innerHTML = matches.map(function(c) {
+        return '<div onclick="selCliente('' + c.nombre.replace(/'/g,"\'") + '')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--g100);font-size:13px" onmouseover="this.style.background='var(--g50)'" onmouseout="this.style.background=''">' + c.nombre + '</div>';
+      }).join('');
+      nuevoDiv.style.display = 'none';
+    } else {
+      sugs.style.display = 'none';
+      // Cliente no existe - mostrar opción de registrar
+      nuevoDiv.style.display = 'block';
+      nuevoDiv.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center">' +
+        '<span style="font-size:13px;color:var(--info,#1A4F8A)">Cliente nuevo: <strong>' + val + '</strong></span>' +
+        '<button class="btn btn-sm" style="background:var(--info,#1A4F8A);color:white;padding:6px 12px;font-size:12px" onclick="abrirModalNuevoCliente('' + val.replace(/'/g,"\'") + '')">+ Registrar</button>' +
+        '</div>';
+    }
+  } else {
+    sugs.style.display = 'none';
+    nuevoDiv.style.display = 'none';
+  }
+}
+
+function selCliente(nombre) {
+  document.getElementById('v-cliente').value = nombre;
+  document.getElementById('v-cli-sugs').style.display = 'none';
+  document.getElementById('v-cliente-nuevo').style.display = 'none';
+}
+
+function abrirModalNuevoCliente(nombre) {
+  document.getElementById('nc-nombre').value = nombre || '';
+  document.getElementById('nc-telefono').value = '';
+  document.getElementById('nc-email').value = '';
+  document.getElementById('modalNuevoCliente').classList.add('show');
+}
+
+async function registrarNuevoCliente() {
+  const nombre = document.getElementById('nc-nombre').value.trim();
+  if (!nombre) { toast('El nombre es obligatorio', 'er'); return; }
+  try {
+    const res = await fetch(API + '/api/clientes', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        nombre: nombre,
+        telefono: document.getElementById('nc-telefono').value.trim(),
+        email: document.getElementById('nc-email').value.trim()
+      })
+    });
+    const d = await res.json();
+    if (res.ok) {
+      clientesCache.push({nombre: nombre});
+      clientesCache.sort(function(a,b){return a.nombre.localeCompare(b.nombre);});
+      document.getElementById('v-cliente').value = nombre;
+      document.getElementById('v-cliente-nuevo').style.display = 'none';
+      cerrarModal('modalNuevoCliente');
+      toast('✓ Cliente registrado correctamente', 'ok');
+    } else {
+      toast(d.detail || 'Error al registrar cliente', 'er');
+    }
+  } catch(e) { toast('Sin conexión', 'er'); }
+}
+
+function abrirConfirmacionVenta() {
+  const cip = document.getElementById('v-cip').value.trim();
+  const fecha = document.getElementById('v-fecha').value;
+  const cliente = document.getElementById('v-cliente').value.trim();
+  const metodo = document.getElementById('v-metodo').value;
+  const tipo = document.getElementById('v-tipo').value;
+
+  // Limpiar errores
+  ['v-cip','v-fecha','v-cliente','v-metodo','v-tipo'].forEach(function(id){
+    document.getElementById(id).classList.remove('err');
+  });
+
+  var ok = true;
+  if (!cip) { document.getElementById('v-cip').classList.add('err'); ok = false; }
+  if (!fecha) { document.getElementById('v-fecha').classList.add('err'); ok = false; }
+  if (!cliente) { document.getElementById('v-cliente').classList.add('err'); ok = false; }
+  if (!metodo) { document.getElementById('v-metodo').classList.add('err'); ok = false; }
+  if (!tipo) { document.getElementById('v-tipo').classList.add('err'); ok = false; }
+  if (!ok) { toast('Completa todos los campos obligatorios', 'er'); return; }
+  if (precioVentaActual <= 0) { toast('Selecciona un CIP válido primero', 'er'); return; }
+
+  var ajuste = parseFloat(document.getElementById('v-ajuste').value) || 0;
+  var precioFinal = precioVentaActual - ajuste;
+
+  document.getElementById('conf-resumen').innerHTML =
+    '<div style="display:grid;gap:8px">' +
+    '<div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">CIP</span><strong>' + cip + '</strong></div>' +
+    '<div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">Cliente</span><strong>' + cliente + '</strong></div>' +
+    '<div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">Fecha</span><strong>' + fmtFecha(fecha) + '</strong></div>' +
+    '<div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">Precio Venta</span><span>' + fmt(precioVentaActual) + '</span></div>' +
+    (ajuste > 0 ? '<div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">Ajuste</span><span style="color:var(--warn)">— ' + fmt(ajuste) + '</span></div>' : '') +
+    '<div style="display:flex;justify-content:space-between;border-top:1px solid var(--g200);padding-top:8px;margin-top:4px"><span><strong>Precio Final</strong></span><strong style="font-size:16px;color:var(--navy)">' + fmt(precioFinal) + '</strong></div>' +
+    '<div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">Método</span><span>' + metodo + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">Tipo</span><span class="badge ' + (tipo==='Contado'?'badge-ok':'badge-warn') + '">' + tipo + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">Vendedor</span><span>' + sesion.nombre + '</span></div>' +
+    '</div>';
+
+  document.getElementById('modalConfVenta').classList.add('show');
+}
+
+async function registrarVenta() {
+  const cip = document.getElementById('v-cip').value.trim();
+  const fecha = document.getElementById('v-fecha').value;
+  const cliente = document.getElementById('v-cliente').value.trim();
+  const metodo = document.getElementById('v-metodo').value;
+  const tipo = document.getElementById('v-tipo').value;
+  const ajuste = parseFloat(document.getElementById('v-ajuste').value) || 0;
+
+  const btn = document.getElementById('btn-conf-venta');
+  btn.disabled = true; btn.textContent = 'Registrando...';
+
+  try {
+    const res = await fetch(API + '/api/ventas', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        codigo_cip: cip, fecha_venta: fecha, cliente: cliente,
+        ajuste_precio: ajuste, metodo_pago: metodo,
+        tipo_venta: tipo, vendedor: sesion.nombre,
+        observaciones: document.getElementById('v-obs').value.trim()
+      })
+    });
+    const d = await res.json();
+    if (res.ok) {
+      cerrarModal('modalConfVenta');
+      toast('✓ ' + d.mensaje, 'ok');
+      // Limpiar formulario
+      ['v-cip','v-cliente','v-obs'].forEach(function(id){document.getElementById(id).value='';});
+      document.getElementById('v-ajuste').value = '0';
+      document.getElementById('v-metodo').value = '';
+      document.getElementById('v-tipo').value = '';
+      document.getElementById('v-precio-box').classList.remove('show');
+      document.getElementById('v-fecha').value = hoy();
+      precioVentaActual = 0;
+      cargarDashboard();
+    } else {
+      cerrarModal('modalConfVenta');
+      toast(d.detail || 'Error al registrar la venta', 'er');
+    }
+  } catch(e) { toast('Sin conexión con el servidor', 'er'); }
+  btn.disabled = false; btn.textContent = '✓ Confirmar y Registrar';
+}
 
 // ── INICIAR ───────────────────────────────────────────────
 document.addEventListener('keydown', e => {
