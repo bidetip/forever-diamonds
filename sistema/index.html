@@ -1893,6 +1893,11 @@ async function cargarClientesCache() {
 function onCIPInput() {
   const val = document.getElementById('v-cip').value.trim().toUpperCase();
   const sugs = document.getElementById('v-cip-sugs');
+  // Si el catálogo no está cargado, cargarlo primero
+  if (catalogoData.length === 0) {
+    cargarCatalogo().then(() => onCIPInput());
+    return;
+  }
   if (val.length >= 2) {
     const matches = catalogoData.filter(function(p) {
       return p.codigo_cip.toUpperCase().indexOf(val) >= 0 ||
@@ -1915,6 +1920,8 @@ function onCIPInput() {
     }
   } else {
     sugs.style.display = 'none';
+    document.getElementById('v-precio-box').classList.remove('show');
+    precioVentaActual = 0;
   }
   clearTimeout(cipTimer);
   cipTimer = setTimeout(calcularPrecioVenta, 700);
