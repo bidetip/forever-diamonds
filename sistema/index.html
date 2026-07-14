@@ -1019,7 +1019,10 @@ function doLogin() {
     document.getElementById('topbarUser').textContent = '👤 ' + sesion.nombre;
     document.getElementById('v-fecha').value = hoy();
     document.getElementById('p-fecha').value = hoy();
-    cargarTodo();
+    // Cargar catálogo y clientes primero (necesarios para Nueva Venta)
+    Promise.all([cargarCatalogo(), cargarClientesCache()]).then(function() {
+      cargarTodo();
+    });
   } else {
     errEl.style.display = 'block';
     document.getElementById('lp').value = '';
@@ -1274,7 +1277,6 @@ async function calcularPrecioVenta() {
     } else {
       document.getElementById('v-precio-box').classList.remove('show');
       precioVentaActual = 0;
-      if (precio.detail) toast(precio.detail, 'er');
     }
   } catch(e) {}
 }
@@ -1895,7 +1897,7 @@ function onCIPInput() {
   const sugs = document.getElementById('v-cip-sugs');
   // Si el catálogo no está cargado, cargarlo primero
   if (catalogoData.length === 0) {
-    cargarCatalogo().then(() => onCIPInput());
+    cargarCatalogo().then(function() { onCIPInput(); });
     return;
   }
   if (val.length >= 2) {
