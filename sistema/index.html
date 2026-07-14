@@ -377,10 +377,10 @@ table{width:max-content;min-width:100%;border-collapse:collapse;font-size:12px;w
   <div class="nav-desktop" id="navDesktop">
     <div class="nav-item active" onclick="showPanel('dashboard',this)"><span class="icon">📊</span>Dashboard</div>
     <div class="nav-item" onclick="showPanel('ventas-lista',this);cargarListaVentas()"><span class="icon">📋</span>Ventas</div>
-    <div class="nav-item" onclick="showPanel('ventas',this)"><span class="icon">🛍️</span>Nueva Venta</div>
+    <div class="nav-item" onclick="showPanel('ventas',this);if(catalogoData.length===0){cargarCatalogo();cargarClientesCache();}"><span class="icon">🛍️</span>Nueva Venta</div>
     <div class="nav-item" onclick="showPanel('pagos',this)"><span class="icon">💰</span>Registrar Pago</div>
-    <div class="nav-item" onclick="showPanel('inventario',this)"><span class="icon">📦</span>Inventario</div>
-    <div class="nav-item" onclick="showPanel('cxc',this)"><span class="icon">📋</span>Créditos</div>
+    <div class="nav-item" onclick="showPanel('inventario',this);if(inventarioData.length===0)cargarCatalogo()"><span class="icon">📦</span>Inventario</div>
+    <div class="nav-item" onclick="showPanel('cxc',this);cargarCXC()"><span class="icon">📋</span>Créditos</div>
     <div class="nav-item" onclick="showPanel('compras',this)"><span class="icon">🧾</span>Compras</div>
     <div class="nav-item" onclick="showPanel('devoluciones',this)"><span class="icon">↩️</span>Devoluciones</div>
     <div class="nav-item" onclick="showPanel('reportes',this)"><span class="icon">📈</span>Reportes</div>
@@ -1019,10 +1019,8 @@ function doLogin() {
     document.getElementById('topbarUser').textContent = '👤 ' + sesion.nombre;
     document.getElementById('v-fecha').value = hoy();
     document.getElementById('p-fecha').value = hoy();
-    // Cargar catálogo y clientes primero (necesarios para Nueva Venta)
-    Promise.all([cargarCatalogo(), cargarClientesCache()]).then(function() {
-      cargarTodo();
-    });
+    // Cargar solo dashboard primero, el resto bajo demanda
+    cargarDashboard();
   } else {
     errEl.style.display = 'block';
     document.getElementById('lp').value = '';
@@ -1081,12 +1079,7 @@ function limpiarErr(...ids) {
 
 // ── CARGAR TODO AL INICIO ─────────────────────────────────
 async function cargarTodo() {
-  await Promise.all([
-    cargarDashboard(),
-    cargarCatalogo(),
-    cargarCXC(),
-    cargarClientesCache(),
-  ]);
+  cargarDashboard();
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────
