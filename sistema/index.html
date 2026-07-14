@@ -215,6 +215,7 @@ code{font-family:'Courier New',monospace;font-size:11px;background:var(--g100);p
     <div class="nav-item" onclick="showPanel('inventario',this);if(!inventarioData.length)cargarCatalogo()">📦 Inventario</div>
     <div class="nav-item" onclick="showPanel('creditos',this);cargarCXC()">📋 Créditos</div>
     <div class="nav-item" onclick="showPanel('reportes',this)">📈 Reportes</div>
+    <div class="nav-item" onclick="showPanel('estado-resultados',this)">📉 Estado Resultados</div>
   </div>
   <div class="content">
 
@@ -372,6 +373,22 @@ code{font-family:'Courier New',monospace;font-size:11px;background:var(--g100);p
         <button class="btn btn-primary btn-full" onclick="generarReporte()">📊 Generar Reporte</button>
       </div>
       <div id="reporte-resultado"></div>
+    </div>
+
+    <!-- ESTADO DE RESULTADOS -->
+    <div class="panel" id="panel-estado-resultados">
+      <div class="card">
+        <div class="card-title">📉 Estado de Resultados</div>
+        <div class="grid2" style="margin-bottom:16px">
+          <div class="field"><label class="lbl">Desde</label><input type="date" id="er-desde"/></div>
+          <div class="field"><label class="lbl">Hasta</label><input type="date" id="er-hasta"/></div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" style="flex:1" onclick="generarEstadoResultados()">📉 Generar por Período</button>
+          <button class="btn btn-secondary" style="flex:1" onclick="generarEstadoResultados(true)">Histórico Completo</button>
+        </div>
+      </div>
+      <div id="er-resultado"></div>
     </div>
 
   </div>
@@ -703,6 +720,49 @@ async function generarReporte(){
       '<div class="card"><div class="card-title">👥 Top 5 Clientes</div><div class="table-wrap"><table><thead><tr><th>#</th><th>Cliente</th><th>N° Piezas</th><th>Monto Total</th></tr></thead><tbody>'+top5.map(function(e,i){return'<tr><td>'+(i+1)+'</td><td>'+e[0]+'</td><td>'+e[1].n+'</td><td>'+fmt(e[1].total)+'</td></tr>';}).join('')+'</tbody></table></div></div>'+
       '<div class="card"><div class="card-title">📋 Detalle Completo</div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Fecha</th><th>Cliente</th><th>CIP</th><th>P.Final</th><th>Tipo</th></tr></thead><tbody>'+todas.sort(function(a,b){return a.fecha_venta<b.fecha_venta?1:-1;}).map(function(v){return'<tr><td><code>'+v.id_venta+'</code></td><td>'+fmtFecha(v.fecha_venta)+'</td><td>'+v.cliente+'</td><td><code>'+v.codigo_cip+'</code></td><td>'+fmt(v.precio_final)+'</td><td><span class="badge '+(v.tipo_venta==='Contado'?'badge-ok':'badge-warn')+'">'+v.tipo_venta+'</span></td></tr>';}).join('')+'</tbody></table></div></div>';
   }catch(e){document.getElementById('reporte-resultado').innerHTML='<div style="color:var(--err);padding:20px">Error al generar reporte.</div>';}
+}
+
+// ESTADO DE RESULTADOS
+async function generarEstadoResultados(historico) {
+  var desde = document.getElementById('er-desde').value, hasta = document.getElementById('er-hasta').value;
+  if (historico === true) { desde = ''; hasta = ''; document.getElementById('er-desde').value = ''; document.getElementById('er-hasta').value = ''; }
+  else if ((desde && !hasta) || (!desde && hasta)) { toast('Selecciona ambas fechas o usa Histórico Completo', 'er'); return; }
+  document.getElementById('er-resultado').innerHTML = '<div class="card"><div style="text-align:center;padding:30px;color:var(--g400)">Calculando estado de resultados...</div></div>';
+  try {
+    var url = API + '/api/estado-resultados', qs = [];
+    if (desde) qs.push('desde=' + desde);
+    if (hasta) qs.push('hasta=' + hasta);
+    if (qs.length) url += '?' + qs.join('&');
+    var res = await fetch(url);
+    if (!res.ok) throw new Error('http');
+    var d = await res.json();
+    var periodoTxt = (desde && hasta) ? (fmtFecha(desde) + ' al ' + fmtFecha(hasta)) : 'Histórico Completo';
+    var gnColor = d.ganancia_neta >= 0 ? 'var(--ok)' : 'var(--err)';
+    document.getElementById('er-resultado').innerHTML =
+      '<div class="kpi-grid">' +
+        '<div class="kpi k-info"><div class="kpi-icon">💵</div><div class="kpi-val">' + fmt(d.ingresos_netos) + '</div><div class="kpi-label">Ingresos Netos</div></div>' +
+        '<div class="kpi k-gold"><div class="kpi-icon">📈</div><div class="kpi-val">' + fmt(d.ganancia_bruta) + '</div><div class="kpi-label">Ganancia Bruta</div><div class="kpi-sub">Margen ' + d.margen_bruto_pct.toFixed(2) + '%</div></div>' +
+        '<div class="kpi k-ok"><div class="kpi-icon">💎</div><div class="kpi-val">' + fmt(d.ganancia_neta) + '</div><div class="kpi-label">Ganancia Neta</div><div class="kpi-sub">Margen ' + d.margen_neto_pct.toFixed(2) + '%</div></div>' +
+        '<div class="kpi k-warn"><div class="kpi-icon">🧾</div><div class="kpi-val">' + d.n_ventas + '</div><div class="kpi-label">N° Ventas</div></div>' +
+      '</div>' +
+      '<div class="card"><div class="card-title">📋 Detalle · ' + periodoTxt + '</div>' +
+      '<div class="precio-preview show" style="margin:0">' +
+        '<div class="precio-row"><span style="color:var(--g500)">Precio Teórico</span><span>' + fmt(d.precio_teorico) + '</span></div>' +
+        '<div class="precio-row"><span style="color:var(--g500)">(–) Ajustes de Precio</span><span>' + fmt(d.total_ajustes) + '</span></div>' +
+        '<div class="precio-row sep"><span>Ventas Brutas</span><span>' + fmt(d.ventas_brutas) + '</span></div>' +
+        '<div class="precio-row" style="margin-top:8px"><span style="color:var(--g500)">(–) Devoluciones</span><span>' + fmt(d.total_devoluciones) + '</span></div>' +
+        '<div class="precio-row sep"><span>Ingresos Netos</span><span>' + fmt(d.ingresos_netos) + '</span></div>' +
+        '<div class="precio-row" style="margin-top:8px"><span style="color:var(--g500)">(–) Costo Landed</span><span>' + fmt(d.costo_landed) + '</span></div>' +
+        '<div class="precio-row sep"><span>Ganancia Bruta</span><span>' + fmt(d.ganancia_bruta) + '</span></div>' +
+        '<div class="precio-row"><span style="color:var(--g500)">Margen Bruto</span><span>' + d.margen_bruto_pct.toFixed(2) + '%</span></div>' +
+        '<div class="precio-row"><span style="color:var(--g500)">Markup</span><span>' + d.markup_pct.toFixed(2) + '%</span></div>' +
+        '<div class="precio-row" style="margin-top:8px"><span style="color:var(--g500)">(–) Gastos Operativos (OPEX)</span><span>' + fmt(d.opex) + '</span></div>' +
+        '<div class="precio-row sep" style="font-size:17px"><span>Ganancia Neta</span><span style="color:' + gnColor + '">' + fmt(d.ganancia_neta) + '</span></div>' +
+        '<div class="precio-row"><span style="color:var(--g500)">Margen Neto</span><span>' + d.margen_neto_pct.toFixed(2) + '%</span></div>' +
+      '</div></div>';
+  } catch(e) {
+    document.getElementById('er-resultado').innerHTML = '<div class="card"><div style="color:var(--err);padding:20px">Error al generar el Estado de Resultados. Verifica la conexión con el servidor.</div></div>';
+  }
 }
 
 // INICIAR
