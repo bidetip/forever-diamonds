@@ -181,3 +181,144 @@ def saldo(id_venta: str):
 def nuevo_pago(pago: NuevoPago):
     if pago.monto <= 0:
         raise HTTPException(status_code=400, detail="El monto debe ser mayor a $0")
+    resultado = database.registrar_pago(pago.dict())
+    if "error" in resultado:
+        raise HTTPException(status_code=400, detail=resultado["error"])
+    if resultado.get("pagado_completo"):
+        resultado["mensaje"] = "Venta pagada al 100%"
+    else:
+        resultado["mensaje"] = "Pago registrado correctamente"
+    return resultado
+
+@app.get("/api/clientes")
+def listar_clientes(q: Optional[str] = None):
+    conn = database.get_conn()
+    cur = conn.cursor()
+    if q:
+        rows = cur.execute("SELECT * FROM clientes WHERE UPPER(nombre) LIKE ? ORDER BY nombre", (f"%{q.upper()}%",)).fetchall()
+    else:
+        rows = cur.execute("SELECT * FROM clientes ORDER BY nombre").fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+@app.post("/api/clientes")
+def nuevo_cliente(cliente: NuevoCliente):
+    if not cliente.nombre.strip():
+        raise HTTPException(status_code=400, detail="El nombre es obligatorio")
+    conn = database.get_conn()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            "INSERT INTO clientes (nombre, telefono, email, notas) VALUES (?,?,?,?)",
+            (cliente.nombre.strip(), cliente.telefono or "", cliente.email or "", cliente.notas or "")
+        )
+        conn.commit()
+        id_nuevo = cur.lastrowid
+        conn.close()
+        return {"success": True, "id": id_nuevo, "nombre": cliente.nombre.strip()}
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/proveedores")
+def proveedores():
+    conn = database.get_conn()
+    cur = conn.cursor()
+    rows = cur.execute("SELECT * FROM proveedores").fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+@app.get("/api/resumen")
+def resumen():
+    conn = database.get_conn()
+    cur = conn.cursor()
+    total_ventas = cur.execute(
+        "SELECT COUNT(*), COALESCE(SUM(precio_final),0) FROM ventas WHERE estado='Activa'"
+    ).fetchone()
+    cxc = cur.execute("""
+        SELECT COUNT(*), COALESCE(SUM(v.precio_final - COALESCE(p.pagado,0)),0)
+        FROM ventas v
+        LEFT JOIN (SELECT id_venta, SUM(monto) as pagado FROM pagos GROUP BY id_venta) p
+        ON v.id_venta = p.id_venta
+        WHERE v.tipo_venta='Crédito' AND v.estado='Activa'
+        AND ROUND(v.precio_final - COALESCE(p.pagado,0), 2) > 0
+    """).fetchone()
+    conn.close()
+    return {
+        "total_ventas": total_ventas[0],
+        "monto_ventas": round(total_ventas[1], 2),
+        "creditos_activos": cxc[0],
+        "saldo_cxc": round(cxc[1], 2)
+    }
+
+@app.get("/api/estado-resultados")
+def estado_resultados(desde: Optional[str] = None, hasta: Optional[str] = None):
+    conn = database.get_conn()
+    cur = conn.cursor()
+    filtro = "WHERE v.estado='Activa'"
+    params = []
+    if desde:
+        filtro += " AND v.fecha_venta >= ?"
+        params.append(desde)
+    if hasta:
+        filtro += " AND v.fecha_venta <= ?"
+        params.append(hasta)
+    r = cur.execute(f"""
+        SELECT COUNT(*) as n_ventas,
+            COALESCE(SUM(v.precio_venta),0) as precio_teorico,
+            COALESCE(SUM(v.ajuste_precio),0) as total_ajustes,
+            COALESCE(SUM(v.precio_final),0) as ventas_brutas,
+            COALESCE(SUM(v.costo_adq),0) as costo_landed
+        FROM ventas v {filtro}
+    """, params).fetchone()
+    filtro_dev = "WHERE 1=1"
+    params_dev = []
+    if desde:
+        filtro_dev += " AND fecha_devolucion >= ?"
+        params_dev.append(desde)
+    if hasta:
+        filtro_dev += " AND fecha_devolucion <= ?"
+        params_dev.append(hasta)
+    dev = cur.execute(f"SELECT COALESCE(SUM(monto_devolver),0) as total_dev FROM devoluciones {filtro_dev}", params_dev).fetchone()
+    filtro_op = "WHERE 1=1"
+    params_op = []
+    if desde:
+        filtro_op += " AND fecha >= ?"
+        params_op.append(desde)
+    if hasta:
+        filtro_op += " AND fecha <= ?"
+        params_op.append(hasta)
+    opex = cur.execute(f"SELECT COALESCE(SUM(monto),0) as total_opex FROM gastos_operativos {filtro_op}", params_op).fetchone()
+    conn.close()
+    ventas_brutas = round(r['ventas_brutas'], 2)
+    precio_teorico = round(r['precio_teorico'], 2)
+    total_ajustes = round(r['total_ajustes'], 2)
+    costo_landed = round(r['costo_landed'], 2)
+    total_dev = round(dev['total_dev'], 2)
+    total_opex = round(opex['total_opex'], 2)
+    ingresos_netos = round(ventas_brutas - total_dev, 2)
+    ganancia_bruta = round(ingresos_netos - costo_landed, 2)
+    margen_bruto = round(ganancia_bruta / ingresos_netos * 100, 2) if ingresos_netos > 0 else 0
+    markup = round(ganancia_bruta / costo_landed * 100, 2) if costo_landed > 0 else 0
+    ganancia_neta = round(ganancia_bruta - total_opex, 2)
+    margen_neto = round(ganancia_neta / ingresos_netos * 100, 2) if ingresos_netos > 0 else 0
+    return {
+        "n_ventas": r['n_ventas'],
+        "precio_teorico": precio_teorico,
+        "total_ajustes": total_ajustes,
+        "ventas_brutas": ventas_brutas,
+        "total_devoluciones": total_dev,
+        "ingresos_netos": ingresos_netos,
+        "costo_landed": costo_landed,
+        "ganancia_bruta": ganancia_bruta,
+        "margen_bruto_pct": margen_bruto,
+        "markup_pct": markup,
+        "opex": total_opex,
+        "ganancia_neta": ganancia_neta,
+        "margen_neto_pct": margen_neto
+    }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
