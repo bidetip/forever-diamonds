@@ -420,8 +420,28 @@ function mostrarFechaPeruana(input, divId) {
 }
 function fmtFecha(f) { if(!f)return'—'; var p=f.split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:f; }
 function fmt(n) { return '$'+parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function toast(msg,tipo) { var el=document.getElementById('toast'); el.textContent=msg; el.className='toast '+(tipo||'ok')+' show'; setTimeout(function(){el.className='toast';},4500); }
+var toastTimer=null;
+function toast(msg,tipo,dur) { var el=document.getElementById('toast'); el.textContent=msg; el.className='toast '+(tipo||'ok')+' show'; clearTimeout(toastTimer); toastTimer=setTimeout(function(){el.className='toast';},dur||4500); }
 function cerrarModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// FETCH CON INDICADOR DE ARRANQUE EN FRÍO (Render free tier duerme tras inactividad)
+var pendingReqs = 0, wakeTimer = null, wakeShown = false;
+function apiFetch(url, opts) {
+  pendingReqs++;
+  if (!wakeTimer) {
+    wakeTimer = setTimeout(function () {
+      wakeShown = true;
+      toast('⏳ Despertando el servidor... puede tardar hasta 50 segundos si estuvo inactivo', 'warn', 55000);
+    }, 4000);
+  }
+  return fetch(url, opts).finally(function () {
+    pendingReqs--;
+    if (pendingReqs <= 0) {
+      clearTimeout(wakeTimer); wakeTimer = null;
+      if (wakeShown) { toast('✓ Servidor listo', 'ok'); wakeShown = false; }
+    }
+  });
+}
 
 // LOGIN
 function doLogin() {
@@ -463,7 +483,7 @@ function showPanel(name, el) {
 // DASHBOARD
 async function cargarDashboard() {
   try {
-    var res = await fetch(API+'/api/resumen');
+    var res = await apiFetch(API+'/api/resumen');
     var d = await res.json();
     document.getElementById('d-ventas').textContent = d.total_ventas||0;
     document.getElementById('d-monto').textContent = fmt(d.monto_ventas);
@@ -473,7 +493,7 @@ async function cargarDashboard() {
     document.getElementById('d-ganancia').textContent = fmt(d.monto_ventas);
     // Cargar stock real
     try {
-      var sr = await fetch(API+'/api/stock/resumen');
+      var sr = await apiFetch(API+'/api/stock/resumen');
       var st = await sr.json();
       document.getElementById('d-productos').textContent = st.total;
       document.getElementById('d-enstock').textContent = st.con_stock;
@@ -488,7 +508,7 @@ async function cargarDashboard() {
   } catch(e) { console.error('Error dashboard:', e); }
   // Últimas ventas
   try {
-    var res2 = await fetch(API+'/api/ventas/todas');
+    var res2 = await apiFetch(API+'/api/ventas/todas');
     var d2 = await res2.json();
     var ultimas = (d2.ventas||[]).slice(0,5);
     document.getElementById('d-ultimas').innerHTML = ultimas.length===0
@@ -500,7 +520,7 @@ async function cargarDashboard() {
 // CATÁLOGO
 async function cargarCatalogo() {
   try {
-    var res = await fetch(API+'/api/catalogo');
+    var res = await apiFetch(API+'/api/catalogo');
     inventarioData = await res.json();
     catalogoData = inventarioData;
     var enStock = catalogoData.filter(function(p){return p.unidades_compradas>0;}).length;
@@ -514,7 +534,7 @@ async function cargarCatalogo() {
 
 async function cargarClientesCache() {
   try {
-    var res = await fetch(API+'/api/clientes');
+    var res = await apiFetch(API+'/api/clientes');
     clientesCache = await res.json();
   } catch(e){}
 }
@@ -541,7 +561,7 @@ function filtrarInventario(){invPagina=1;renderInventario();}
 
 // LISTA VENTAS
 async function cargarListaVentas() {
-  try { var res=await fetch(API+'/api/ventas/todas'); var d=await res.json(); vlDatos=d.ventas||[]; vlFiltrar(); } catch(e){}
+  try { var res=await apiFetch(API+'/api/ventas/todas'); var d=await res.json(); vlDatos=d.ventas||[]; vlFiltrar(); } catch(e){}
 }
 function vlFiltroRapido(tipo,btn){vlFiltroActivo=tipo;document.querySelectorAll('.filtro-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');vlFiltrar();}
 function vlFiltrar(){
@@ -612,8 +632,8 @@ async function calcularPrecio(){
   var cip=document.getElementById('v-cip').value.trim(), fecha=document.getElementById('v-fecha').value;
   if(!cip||!fecha)return;
   try{
-    var pr=await fetch(API+'/api/precio/'+encodeURIComponent(cip)+'?fecha='+fecha);
-    var sr=await fetch(API+'/api/stock/'+encodeURIComponent(cip));
+    var pr=await apiFetch(API+'/api/precio/'+encodeURIComponent(cip)+'?fecha='+fecha);
+    var sr=await apiFetch(API+'/api/stock/'+encodeURIComponent(cip));
     var precio=await pr.json(), stock=await sr.json();
     if(precio.precio_venta){
       precioVentaActual=precio.precio_venta;
@@ -644,7 +664,7 @@ function abrirNuevoCliente(n){document.getElementById('nc-nombre').value=n||'';d
 async function guardarNuevoCliente(){
   var nombre=document.getElementById('nc-nombre').value.trim();
   if(!nombre){toast('El nombre es obligatorio','er');return;}
-  try{var res=await fetch(API+'/api/clientes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:nombre,telefono:document.getElementById('nc-telefono').value.trim(),email:document.getElementById('nc-email').value.trim()})});var d=await res.json();if(res.ok){clientesCache.push({nombre:nombre});clientesCache.sort(function(a,b){return a.nombre.localeCompare(b.nombre);});document.getElementById('v-cliente').value=nombre;document.getElementById('v-cli-nuevo').style.display='none';cerrarModal('modalNuevoCliente');toast('✓ Cliente registrado','ok');}else toast(d.detail||'Error','er');}catch(e){toast('Sin conexión','er');}
+  try{var res=await apiFetch(API+'/api/clientes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:nombre,telefono:document.getElementById('nc-telefono').value.trim(),email:document.getElementById('nc-email').value.trim()})});var d=await res.json();if(res.ok){clientesCache.push({nombre:nombre});clientesCache.sort(function(a,b){return a.nombre.localeCompare(b.nombre);});document.getElementById('v-cliente').value=nombre;document.getElementById('v-cli-nuevo').style.display='none';cerrarModal('modalNuevoCliente');toast('✓ Cliente registrado','ok');}else toast(d.detail||'Error','er');}catch(e){toast('Sin conexión','er');}
 }
 function abrirConfirmVenta(){
   var cip=document.getElementById('v-cip').value.trim(), fecha=document.getElementById('v-fecha').value, cliente=document.getElementById('v-cliente').value.trim(), metodo=document.getElementById('v-metodo').value, tipo=document.getElementById('v-tipo').value;
@@ -664,7 +684,7 @@ function abrirConfirmVenta(){
 async function ejecutarRegistroVenta(){
   var btn=document.getElementById('btn-conf-venta'); btn.disabled=true; btn.textContent='Registrando...';
   try{
-    var res=await fetch(API+'/api/ventas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({codigo_cip:document.getElementById('v-cip').value.trim(),fecha_venta:document.getElementById('v-fecha').value,cliente:document.getElementById('v-cliente').value.trim(),ajuste_precio:parseFloat(document.getElementById('v-ajuste').value)||0,metodo_pago:document.getElementById('v-metodo').value,tipo_venta:document.getElementById('v-tipo').value,vendedor:sesion.nombre,observaciones:document.getElementById('v-obs').value.trim()})});
+    var res=await apiFetch(API+'/api/ventas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({codigo_cip:document.getElementById('v-cip').value.trim(),fecha_venta:document.getElementById('v-fecha').value,cliente:document.getElementById('v-cliente').value.trim(),ajuste_precio:parseFloat(document.getElementById('v-ajuste').value)||0,metodo_pago:document.getElementById('v-metodo').value,tipo_venta:document.getElementById('v-tipo').value,vendedor:sesion.nombre,observaciones:document.getElementById('v-obs').value.trim()})});
     var d=await res.json();
     if(res.ok){cerrarModal('modalConfVenta');toast('✓ '+d.mensaje,'ok');['v-cip','v-cliente','v-obs'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('v-ajuste').value='0';document.getElementById('v-metodo').value='';document.getElementById('v-tipo').value='';document.getElementById('v-precio-box').classList.remove('show');document.getElementById('v-fecha').value=hoy();precioVentaActual=0;cargarDashboard();}
     else{cerrarModal('modalConfVenta');toast(d.detail||'Error al registrar','er');}
@@ -678,7 +698,7 @@ async function buscarParaPago(){
   var q=document.getElementById('p-buscar').value.trim();
   if(q.length<2){document.getElementById('p-resultados').innerHTML='';document.getElementById('saldo-box').classList.remove('show');return;}
   buscarTimer=setTimeout(async function(){
-    try{var res=await fetch(API+'/api/ventas/buscar?q='+encodeURIComponent(q));var d=await res.json();var cr=(d.resultados||[]).filter(function(v){return v.tipo_venta==='Crédito';});var cont=document.getElementById('p-resultados');
+    try{var res=await apiFetch(API+'/api/ventas/buscar?q='+encodeURIComponent(q));var d=await res.json();var cr=(d.resultados||[]).filter(function(v){return v.tipo_venta==='Crédito';});var cont=document.getElementById('p-resultados');
     if(!cr.length){cont.innerHTML='<p style="color:var(--g500);font-size:13px;padding:12px 0">Sin ventas a crédito encontradas.</p>';return;}
     window._pRes=cr;cont.innerHTML=cr.map(function(v,i){return'<div class="result-card" onclick="selPago('+i+')"><div class="result-cip">'+v.codigo_cip+' · '+v.id_venta+'</div><div class="result-name">'+v.cliente+'</div><div class="result-row"><span>Precio Final</span><span class="rv">'+fmt(v.precio_final)+'</span></div><div class="result-row"><span>Total Pagado</span><span class="rv">'+fmt(v.total_pagado)+'</span></div><span class="badge '+(v.pagado_completo?'badge-ok':'badge-warn')+'">'+(v.pagado_completo?'✓ Pagado':'Saldo: '+fmt(v.saldo))+'</span></div>';}).join('');}catch(e){}
   },400);
@@ -689,14 +709,14 @@ async function ejecutarPago(){
   var fecha=document.getElementById('p-fecha').value,monto=parseFloat(document.getElementById('p-monto').value),metodo=document.getElementById('p-metodo').value;
   if(!fecha||!monto||!metodo){toast('Completa todos los campos','er');return;}
   var btn=document.getElementById('btn-pago');btn.disabled=true;btn.textContent='Registrando...';
-  try{var res=await fetch(API+'/api/pagos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id_venta:ventaSeleccionada.id_venta,codigo_cip:ventaSeleccionada.codigo_cip,cliente:ventaSeleccionada.cliente,fecha_pago:fecha,monto:monto,metodo_pago:metodo,vendedor:sesion.nombre,notas:document.getElementById('p-notas').value.trim()})});var d=await res.json();
+  try{var res=await apiFetch(API+'/api/pagos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id_venta:ventaSeleccionada.id_venta,codigo_cip:ventaSeleccionada.codigo_cip,cliente:ventaSeleccionada.cliente,fecha_pago:fecha,monto:monto,metodo_pago:metodo,vendedor:sesion.nombre,notas:document.getElementById('p-notas').value.trim()})});var d=await res.json();
   if(res.ok){if(d.pagado_completo){document.getElementById('celebNombre').textContent=ventaSeleccionada.cliente;document.getElementById('modalCeleb').classList.add('show');}else toast('✓ Pago registrado. Saldo: '+fmt(d.nuevo_saldo),'ok');ventaSeleccionada=null;document.getElementById('saldo-box').classList.remove('show');document.getElementById('p-buscar').value='';document.getElementById('p-resultados').innerHTML='';cargarDashboard();}else toast(d.detail||'Error','er');}catch(e){toast('Sin conexión','er');}
   btn.disabled=false;btn.textContent='Registrar Pago';
 }
 
 // CXC
 async function cargarCXC(){
-  try{var res=await fetch(API+'/api/ventas/todas');var d=await res.json();var cr=(d.ventas||[]).filter(function(v){return v.tipo_venta==='Crédito';}).sort(function(a,b){return a.fecha_venta<b.fecha_venta?1:-1;});var tb=document.getElementById('cxc-tbody');if(tb)tb.innerHTML=cr.map(function(v){return'<tr><td><code>'+v.id_venta+'</code></td><td>'+fmtFecha(v.fecha_venta)+'</td><td>'+v.cliente+'</td><td><code>'+v.codigo_cip+'</code></td><td>'+fmt(v.precio_final)+'</td><td>'+fmt(v.total_pagado)+'</td><td><strong>'+fmt(v.saldo)+'</strong></td><td><span class="badge '+(v.pagado_completo?'badge-ok':'badge-warn')+'">'+(v.pagado_completo?'Pagado':'Pendiente')+'</span></td></tr>';}).join('')||'<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--g400)">Sin créditos</td></tr>';}catch(e){}
+  try{var res=await apiFetch(API+'/api/ventas/todas');var d=await res.json();var cr=(d.ventas||[]).filter(function(v){return v.tipo_venta==='Crédito';}).sort(function(a,b){return a.fecha_venta<b.fecha_venta?1:-1;});var tb=document.getElementById('cxc-tbody');if(tb)tb.innerHTML=cr.map(function(v){return'<tr><td><code>'+v.id_venta+'</code></td><td>'+fmtFecha(v.fecha_venta)+'</td><td>'+v.cliente+'</td><td><code>'+v.codigo_cip+'</code></td><td>'+fmt(v.precio_final)+'</td><td>'+fmt(v.total_pagado)+'</td><td><strong>'+fmt(v.saldo)+'</strong></td><td><span class="badge '+(v.pagado_completo?'badge-ok':'badge-warn')+'">'+(v.pagado_completo?'Pagado':'Pendiente')+'</span></td></tr>';}).join('')||'<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--g400)">Sin créditos</td></tr>';}catch(e){}
 }
 
 // REPORTES
@@ -705,7 +725,27 @@ async function generarReporte(){
   if(!desde||!hasta){toast('Selecciona el rango de fechas','er');return;}
   document.getElementById('reporte-resultado').innerHTML='<div style="text-align:center;padding:30px;color:var(--g400)">Generando reporte...</div>';
   try{
-    var res=await fetch(API+'/api/ventas/todas');var d=await res.json();
+    var erCardHtml = '';
+    try {
+      var erRes = await apiFetch(API+'/api/estado-resultados?desde='+desde+'&hasta='+hasta);
+      if (erRes.ok) {
+        var er = await erRes.json();
+        erCardHtml = '<div class="card"><div class="card-title">💎 Módulo 4 · Estado de Resultados del Período</div><div class="table-wrap"><table><tbody>'+
+          '<tr><td>Ingresos Netos (cobrado − devoluciones)</td><td><strong>'+fmt(er.ingresos_netos)+'</strong></td></tr>'+
+          '<tr><td>Precio Venta Teórico (sin ajustes)</td><td>'+fmt(er.precio_teorico)+'</td></tr>'+
+          '<tr><td>(−) Ajustes de Precio (descuentos)</td><td>'+fmt(er.total_ajustes)+'</td></tr>'+
+          '<tr><td>(−) Devoluciones</td><td>'+fmt(er.total_devoluciones)+'</td></tr>'+
+          '<tr><td>(−) Costo de Adquisición (Landed)</td><td>'+fmt(er.costo_landed)+'</td></tr>'+
+          '<tr style="font-weight:700;background:var(--g50)"><td>(=) Ganancia Bruta Real</td><td>'+fmt(er.ganancia_bruta)+'</td></tr>'+
+          '<tr><td>Margen Bruto % (s/venta)</td><td>'+er.margen_bruto_pct.toFixed(2)+'%</td></tr>'+
+          '<tr><td>Markup % (s/costo)</td><td>'+er.markup_pct.toFixed(2)+'%</td></tr>'+
+          '<tr><td>(−) Gastos Operativos (OPEX)</td><td>'+fmt(er.opex)+'</td></tr>'+
+          '<tr style="font-weight:700;background:var(--ok-lt)"><td>(=) Ganancia Neta</td><td style="color:var(--ok)">'+fmt(er.ganancia_neta)+'</td></tr>'+
+          '<tr><td>Margen Neto % (s/venta)</td><td>'+er.margen_neto_pct.toFixed(2)+'%</td></tr>'+
+          '</tbody></table></div></div>';
+      }
+    } catch(e2) { /* si falla el Estado de Resultados, se muestra igual el resto del reporte */ }
+    var res=await apiFetch(API+'/api/ventas/todas');var d=await res.json();
     var todas=(d.ventas||[]).filter(function(v){return v.fecha_venta>=desde&&v.fecha_venta<=hasta;});
     var totalIngresos=todas.reduce(function(s,v){return s+v.precio_final;},0);
     var contado=todas.filter(function(v){return v.tipo_venta==='Contado';});
@@ -714,6 +754,7 @@ async function generarReporte(){
     var porCliente={};todas.forEach(function(v){if(!porCliente[v.cliente])porCliente[v.cliente]={n:0,total:0};porCliente[v.cliente].n++;porCliente[v.cliente].total+=v.precio_final;});
     var top5=Object.entries(porCliente).sort(function(a,b){return b[1].total-a[1].total;}).slice(0,5);
     document.getElementById('reporte-resultado').innerHTML=
+      erCardHtml+
       '<div class="card"><div class="card-title">📊 Ventas del Período ('+fmtFecha(desde)+' al '+fmtFecha(hasta)+')</div><div class="kpi-grid"><div class="kpi k-gold"><div class="kpi-val">'+todas.length+'</div><div class="kpi-label">N° Ventas</div></div><div class="kpi k-ok"><div class="kpi-val">'+fmt(totalIngresos)+'</div><div class="kpi-label">Total Ingresos</div></div><div class="kpi k-info"><div class="kpi-val">'+fmt(totalIngresos/(todas.length||1))+'</div><div class="kpi-label">Ticket Promedio</div></div><div class="kpi k-warn"><div class="kpi-val">'+credito.length+'</div><div class="kpi-label">Ventas a Crédito</div></div></div></div>'+
       '<div class="card"><div class="card-title">💼 Desglose de Cartera</div><div class="table-wrap"><table><thead><tr><th>Tipo</th><th>N° Ventas</th><th>Monto</th><th>%</th></tr></thead><tbody><tr><td>Contado</td><td>'+contado.length+'</td><td>'+fmt(contado.reduce(function(s,v){return s+v.precio_final;},0))+'</td><td>'+(totalIngresos>0?(contado.reduce(function(s,v){return s+v.precio_final;},0)/totalIngresos*100).toFixed(1):0)+'%</td></tr><tr><td>Crédito</td><td>'+credito.length+'</td><td>'+fmt(credito.reduce(function(s,v){return s+v.precio_final;},0))+'</td><td>'+(totalIngresos>0?(credito.reduce(function(s,v){return s+v.precio_final;},0)/totalIngresos*100).toFixed(1):0)+'%</td></tr><tr style="font-weight:700"><td>TOTAL</td><td>'+todas.length+'</td><td>'+fmt(totalIngresos)+'</td><td>100%</td></tr></tbody></table></div></div>'+
       '<div class="card"><div class="card-title">💍 Por Tipo de Joya</div><div class="table-wrap"><table><thead><tr><th>Tipo</th><th>N° Piezas</th><th>Monto</th><th>%</th></tr></thead><tbody>'+Object.entries(porTipo).sort(function(a,b){return b[1].total-a[1].total;}).map(function(e){return'<tr><td>'+e[0]+'</td><td>'+e[1].n+'</td><td>'+fmt(e[1].total)+'</td><td>'+(totalIngresos>0?(e[1].total/totalIngresos*100).toFixed(1):0)+'%</td></tr>';}).join('')+'<tr style="font-weight:700"><td>TOTAL</td><td>'+todas.length+'</td><td>'+fmt(totalIngresos)+'</td><td>100%</td></tr></tbody></table></div></div>'+
