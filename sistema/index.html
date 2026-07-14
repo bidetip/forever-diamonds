@@ -2,480 +2,245 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Forever Diamonds — Sistema</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
-/* ── VARIABLES ───────────────────────────────────────────── */
-:root{
-  --navy:#1F2D3D; --navy2:#162230;
-  --gold:#D9B36C; --gold-lt:#FDF3DC; --gold-dk:#B8922E;
-  --white:#FFFFFF; --g50:#F8F8F6; --g100:#F0EEE9;
-  --g200:#E5E3DE; --g300:#CBC8C2; --g400:#B0ADA8;
-  --g500:#8A8680; --g600:#6B6864;
-  --ok:#1E6B45; --ok-lt:#D6EAD6;
-  --err:#C0392B; --err-lt:#FAD7D7;
-  --warn:#B7791F; --warn-lt:#FEF3C7;
-  --info:#1A4F8A; --info-lt:#DCE9F7;
-  --radius:10px; --radius-lg:16px;
-  --shadow:0 2px 12px rgba(0,0,0,.08);
-  --shadow-md:0 4px 24px rgba(0,0,0,.12);
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{scroll-behavior:smooth}
+:root{--navy:#1F2D3D;--gold:#D9B36C;--gold-lt:#FDF3DC;--white:#FFFFFF;--g50:#F8F8F6;--g100:#F0EEE9;--g200:#E5E3DE;--g400:#B0ADA8;--g500:#8A8680;--ok:#1E6B45;--ok-lt:#D6EAD6;--err:#C0392B;--err-lt:#FAD7D7;--warn:#B7791F;--warn-lt:#FEF3C7;--info:#1A4F8A;--info-lt:#DCE9F7;--radius:10px;--shadow:0 2px 12px rgba(0,0,0,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--g50);color:var(--navy);min-height:100vh;font-size:14px}
-
-/* ── PANTALLA DE INICIO (servidor durmiendo) ─────────────── */
-#splash{
-  position:fixed;inset:0;background:var(--navy);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  z-index:1000;transition:opacity .5s;
-}
-#splash.fade{opacity:0;pointer-events:none}
-.splash-gem{font-size:64px;margin-bottom:16px;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-.splash-title{font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--gold);font-weight:700;letter-spacing:.05em;margin-bottom:6px}
-.splash-sub{font-size:12px;color:rgba(217,179,108,.6);letter-spacing:.2em;text-transform:uppercase;margin-bottom:40px}
-.splash-msg{font-size:13px;color:rgba(255,255,255,.7);margin-bottom:16px;text-align:center;max-width:280px;line-height:1.6}
-.splash-bar-wrap{width:240px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
-.splash-bar{height:100%;background:var(--gold);border-radius:2px;width:0%;transition:width .3s}
-.splash-pct{font-size:11px;color:rgba(217,179,108,.7);margin-top:8px}
-
-/* ── LOGIN ───────────────────────────────────────────────── */
-#loginPage{
-  min-height:100vh;display:none;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,var(--navy) 0%,#2a3f55 100%);padding:20px;
-}
-.login-card{
-  background:var(--white);border-radius:var(--radius-lg);
-  padding:40px 32px;width:100%;max-width:380px;
-  box-shadow:var(--shadow-md);text-align:center;
-}
+/* LOGIN */
+#loginPage{min-height:100vh;display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy) 0%,#2a3f55 100%);padding:20px}
+.login-card{background:var(--white);border-radius:16px;padding:40px 32px;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,.12);text-align:center}
 .login-gem{font-size:52px;margin-bottom:14px}
 .login-brand{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--navy);margin-bottom:4px}
 .login-tagline{font-size:11px;color:var(--g500);letter-spacing:.2em;text-transform:uppercase;margin-bottom:32px}
 .login-field{margin-bottom:16px;text-align:left}
 .login-field label{display:block;font-size:11px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
-.login-field input{
-  width:100%;padding:13px 16px;border:1.5px solid var(--g200);
-  border-radius:var(--radius);font-size:15px;font-family:'Inter',sans-serif;
-  color:var(--navy);background:var(--g50);transition:border-color .15s;
-}
-.login-field input:focus{outline:none;border-color:var(--gold);background:var(--white)}
-.login-btn{
-  width:100%;padding:15px;background:var(--navy);color:var(--gold);
-  border:none;border-radius:var(--radius);font-family:'Cormorant Garamond',serif;
-  font-size:19px;font-weight:600;cursor:pointer;margin-top:8px;
-  letter-spacing:.05em;transition:background .15s;
-}
-.login-btn:hover{background:var(--navy2)}
-.login-err{color:var(--err);font-size:13px;margin-top:12px;display:none;
-  background:var(--err-lt);padding:10px;border-radius:8px}
+.login-field input{width:100%;padding:13px 16px;border:1.5px solid var(--g200);border-radius:var(--radius);font-size:15px;font-family:'Inter',sans-serif;color:var(--navy);background:var(--g50)}
+.login-field input:focus{outline:none;border-color:var(--gold)}
+.login-btn{width:100%;padding:15px;background:var(--navy);color:var(--gold);border:none;border-radius:var(--radius);font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;cursor:pointer;margin-top:8px;letter-spacing:.05em}
+.login-err{color:var(--err);font-size:13px;margin-top:12px;display:none;background:var(--err-lt);padding:10px;border-radius:8px}
 .login-footer{font-size:11px;color:var(--g400);margin-top:20px}
-
-/* ── APP LAYOUT ──────────────────────────────────────────── */
+/* APP */
 #app{display:none;min-height:100vh;flex-direction:column}
-
-/* TOPBAR */
-.topbar{
-  background:var(--navy);padding:0 20px;height:56px;
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:100;
-  box-shadow:0 2px 8px rgba(0,0,0,.2);
-}
-.topbar-left{display:flex;align-items:center;gap:12px}
-.topbar-logo{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);font-weight:600;letter-spacing:.05em}
+.topbar{background:var(--navy);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.topbar-logo{font-family:'Inter',sans-serif;font-size:18px;color:var(--gold);font-weight:700}
 .topbar-right{display:flex;align-items:center;gap:12px}
-.topbar-user{font-size:12px;color:rgba(217,179,108,.7);display:none}
-.topbar-logout{
-  background:none;border:1px solid rgba(217,179,108,.3);color:var(--gold);
-  padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;
-  font-family:'Inter',sans-serif;transition:all .15s;
-}
-.topbar-logout:hover{background:rgba(217,179,108,.1)}
-
-/* NAV DESKTOP */
-.nav-desktop{
-  background:var(--white);border-bottom:2px solid var(--g200);
-  overflow-x:auto;white-space:nowrap;padding:0 20px;
-  display:flex;
-}
-.nav-desktop::-webkit-scrollbar{height:3px}
-.nav-desktop::-webkit-scrollbar-thumb{background:var(--g300);border-radius:2px}
-.nav-item{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:14px 16px;font-size:12px;font-weight:600;
-  color:var(--g500);cursor:pointer;
-  border-bottom:3px solid transparent;margin-bottom:-2px;
-  text-transform:uppercase;letter-spacing:.08em;
-  transition:all .15s;white-space:nowrap;
-}
-.nav-item:hover{color:var(--navy)}
+.topbar-user{font-size:12px;color:rgba(217,179,108,.7)}
+.topbar-logout{background:none;border:1px solid rgba(217,179,108,.3);color:var(--gold);padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer}
+.nav-desktop{background:var(--white);border-bottom:2px solid var(--g200);overflow-x:auto;white-space:nowrap;padding:0 20px;display:flex}
+.nav-item{display:inline-flex;align-items:center;gap:6px;padding:14px 16px;font-size:12px;font-weight:600;color:var(--g500);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;text-transform:uppercase;letter-spacing:.08em;transition:all .15s;white-space:nowrap}
 .nav-item.active{color:var(--navy);border-bottom-color:var(--gold)}
-.nav-item .icon{font-size:15px}
-
-/* CONTENT */
 .content{padding:20px 16px 80px;max-width:1100px;margin:0 auto;flex:1}
 .panel{display:none}.panel.active{display:block}
-
-/* ── COMPONENTES BASE ────────────────────────────────────── */
-/* Cards */
+/* CARDS */
 .card{background:var(--white);border-radius:var(--radius);padding:20px;margin-bottom:16px;border:1px solid var(--g200);box-shadow:var(--shadow)}
-.card-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--navy);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:8px}
-
-/* KPI Cards */
+.card-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--navy);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--g200)}
+/* KPI */
 .kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
-.kpi{background:var(--white);border-radius:var(--radius);padding:16px;border:1px solid var(--g200);box-shadow:var(--shadow);position:relative;overflow:hidden}
+.kpi{background:var(--white);border-radius:var(--radius);padding:16px;border:1px solid var(--g200);position:relative;overflow:hidden}
 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.kpi.k-gold::before{background:var(--gold)}
-.kpi.k-ok::before{background:var(--ok)}
-.kpi.k-err::before{background:var(--err)}
-.kpi.k-info::before{background:var(--info)}
-.kpi.k-warn::before{background:var(--warn)}
-.kpi.k-purple::before{background:#7B2D8B}
+.kpi.k-gold::before{background:var(--gold)}.kpi.k-ok::before{background:var(--ok)}.kpi.k-err::before{background:var(--err)}.kpi.k-info::before{background:var(--info)}.kpi.k-warn::before{background:var(--warn)}
 .kpi-icon{font-size:24px;margin-bottom:8px}
-.kpi-val{font-family:'Inter',sans-serif;font-size:24px;font-weight:700;color:var(--navy);line-height:1.1}
+.kpi-val{font-size:24px;font-weight:700;color:var(--navy)}
 .kpi-label{font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.1em;margin-top:4px}
 .kpi-sub{font-size:11px;color:var(--g400);margin-top:2px}
-
-/* Fields */
-.field{margin-bottom:14px}
-.field:last-child{margin-bottom:0}
+/* FIELDS */
+.field{margin-bottom:14px}.field:last-child{margin-bottom:0}
 .lbl{display:block;font-size:11px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
 .req{color:var(--gold);margin-left:2px}
-input,select,textarea{
-  width:100%;padding:11px 13px;border:1.5px solid var(--g200);
-  border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;
-  color:var(--navy);background:var(--white);transition:all .15s;
-  -webkit-appearance:none;appearance:none;
-}
+input,select,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--g200);border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;color:var(--navy);background:var(--white);-webkit-appearance:none;appearance:none}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(217,179,108,.12)}
-input.err,select.err{border-color:var(--err);background:var(--err-lt)}
+input.err,select.err{border-color:var(--err)}
 select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A8680' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
-textarea{resize:vertical;min-height:72px;font-size:14px}
-
-/* Botones */
-.btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  padding:12px 20px;border:none;border-radius:var(--radius);
-  font-family:'Inter',sans-serif;font-size:14px;font-weight:600;
-  cursor:pointer;transition:all .15s;
-}
-.btn-primary{background:var(--navy);color:var(--gold)}
-.btn-primary:hover{background:var(--navy2)}
-.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+textarea{resize:vertical;min-height:72px}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border:none;border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-primary{background:var(--navy);color:var(--gold)}.btn-primary:disabled{opacity:.6;cursor:not-allowed}
 .btn-secondary{background:var(--white);color:var(--navy);border:2px solid var(--navy)}
-.btn-danger{background:var(--err);color:var(--white)}
-.btn-success{background:var(--ok);color:var(--white)}
-.btn-gold{background:var(--gold);color:var(--navy)}
-.btn-full{width:100%}
-.btn-sm{padding:8px 14px;font-size:12px}
-
-/* Tablas */
-.table-wrap{overflow-x:scroll;border-radius:var(--radius);border:1px solid var(--g200);-webkit-overflow-scrolling:touch;display:block;width:100%}
-table{width:100%;border-collapse:collapse;font-size:13px;min-width:500px}
-thead th{background:var(--navy);color:var(--white);padding:11px 14px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
-tbody td{padding:11px 14px;border-bottom:1px solid var(--g100);vertical-align:middle}
-tbody tr:last-child td{border-bottom:none}
+.btn-full{width:100%}.btn-sm{padding:8px 14px;font-size:12px}
+/* TABLE */
+.table-wrap{overflow-x:scroll;border-radius:var(--radius);border:1px solid var(--g200);display:block;width:100%;-webkit-overflow-scrolling:touch}
+table{width:max-content;min-width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+thead th{background:var(--navy);color:var(--white);padding:10px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--g100);vertical-align:middle}
 tbody tr:hover td{background:var(--g50)}
-code{font-family:'Courier New',monospace;font-size:11px;background:var(--g100);padding:2px 6px;border-radius:4px;color:var(--navy2)}
-
-/* Badges */
-.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
-.badge-ok{background:var(--ok-lt);color:var(--ok)}
-.badge-err{background:var(--err-lt);color:var(--err)}
-.badge-warn{background:var(--warn-lt);color:var(--warn)}
-.badge-info{background:var(--info-lt);color:var(--info)}
-.badge-gray{background:var(--g100);color:var(--g600)}
-
-/* Paginación */
+code{font-family:'Courier New',monospace;font-size:11px;background:var(--g100);padding:2px 6px;border-radius:4px;white-space:nowrap}
+/* BADGES */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-ok{background:var(--ok-lt);color:var(--ok)}.badge-err{background:var(--err-lt);color:var(--err)}
+.badge-warn{background:var(--warn-lt);color:var(--warn)}.badge-gray{background:var(--g100);color:var(--g500)}
+/* PAGINATION */
 .paginacion{display:flex;align-items:center;justify-content:space-between;padding:12px 0;font-size:13px;color:var(--g500)}
 .pag-btns{display:flex;gap:6px}
 .pag-btn{padding:6px 12px;border:1px solid var(--g200);border-radius:6px;background:var(--white);cursor:pointer;font-size:12px;color:var(--navy)}
 .pag-btn.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
 .pag-btn:disabled{opacity:.4;cursor:not-allowed}
-
-/* Search */
-.search-wrap{position:relative;margin-bottom:14px}
-.search-wrap input{padding-left:38px}
-.search-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:16px;pointer-events:none}
-
-/* Precio calculado */
+/* VENTAS LIST */
+.filtros-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.filtros-bar input,.filtros-bar select{width:auto;flex:1;min-width:120px;padding:9px 12px;font-size:13px}
+.filtros-rapidos{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.filtro-btn{padding:6px 14px;border:1.5px solid var(--g200);border-radius:20px;background:var(--white);font-size:12px;font-weight:600;color:var(--g500);cursor:pointer}
+.filtro-btn.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
+.resumen-bar{display:flex;gap:16px;flex-wrap:wrap;padding:12px 16px;background:var(--gold-lt);border:1px solid var(--gold);border-radius:var(--radius);margin-bottom:14px}
+.resumen-bar .rb-item{display:flex;flex-direction:column;gap:2px}
+.resumen-bar .rb-val{font-size:16px;font-weight:700;color:var(--navy)}
+.resumen-bar .rb-lbl{font-size:10px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em}
+.venta-desktop{display:none}.venta-mobile{display:block}
+@media(min-width:768px){.venta-desktop{display:table}.venta-mobile{display:none}}
+.vcard{background:var(--white);border:1px solid var(--g200);border-radius:var(--radius);padding:14px;margin-bottom:10px;border-left:4px solid var(--g200)}
+.vcard.contado{border-left-color:var(--ok)}.vcard.credito{border-left-color:var(--warn)}
+.vcard-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.vcard-id{font-size:11px;font-weight:700;color:var(--g500)}
+.vcard-fecha{font-size:11px;color:var(--g400)}
+.vcard-cliente{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.vcard-cip{font-size:11px;color:var(--g500);margin-bottom:8px}
+.vcard-bottom{display:flex;justify-content:space-between;align-items:center}
+.vcard-precio{font-size:16px;font-weight:700;color:var(--navy)}
+.vcard-saldo-pend{font-size:12px;font-weight:600;color:var(--warn)}
+.vcard-saldo-ok{font-size:12px;font-weight:600;color:var(--ok)}
+/* PRECIO PREVIEW */
 .precio-preview{background:var(--gold-lt);border:1.5px solid var(--gold);border-radius:var(--radius);padding:16px;margin:14px 0;display:none}
 .precio-preview.show{display:block}
 .precio-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:3px 0}
 .precio-row.sep{border-top:1px solid var(--gold);margin-top:6px;padding-top:8px;font-weight:700;font-size:15px}
-.precio-row .lbl2{color:var(--g600)}
-.precio-row .val2{font-weight:600;color:var(--navy)}
 .stock-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;margin-top:8px;padding:4px 10px;border-radius:20px}
-.stock-chip.ok{background:var(--ok-lt);color:var(--ok)}
-.stock-chip.err{background:var(--err-lt);color:var(--err)}
-
-/* Toast */
-.toast{
-  position:fixed;bottom:24px;left:50%;
-  transform:translateX(-50%) translateY(120px);
-  padding:14px 24px;border-radius:var(--radius);font-size:14px;font-weight:500;
-  z-index:500;transition:transform .3s cubic-bezier(.34,1.56,.64,1);
-  max-width:340px;text-align:center;box-shadow:var(--shadow-md);
-  pointer-events:none;
-}
-.toast.show{transform:translateX(-50%) translateY(0)}
-.toast.ok{background:var(--ok);color:var(--white)}
-.toast.er{background:var(--err);color:var(--white)}
-.toast.warn{background:var(--warn);color:var(--white)}
-
-/* Modal */
-.modal-bg{position:fixed;inset:0;background:rgba(31,45,61,.75);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
-.modal-bg.show{display:flex}
-.modal{background:var(--white);border-radius:var(--radius-lg);padding:32px 28px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto}
-.modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--navy);margin-bottom:20px}
-.modal-celebration{text-align:center;padding:8px 0}
-.modal-celebration .big{font-size:64px;margin-bottom:12px}
-.modal-celebration h2{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--navy);margin-bottom:8px}
-.modal-celebration p{font-size:14px;color:var(--g500);line-height:1.6;margin-bottom:24px}
-
-/* Gráficos */
-.chart-container{width:100%;overflow-x:auto}
-svg.chart{display:block;width:100%;height:180px}
-
-/* Alertas dashboard */
-.alert-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:8px;margin-bottom:8px;background:var(--err-lt);border-left:3px solid var(--err)}
-.alert-item.warn{background:var(--warn-lt);border-left-color:var(--warn)}
-.alert-item .alert-icon{font-size:18px;flex-shrink:0}
-.alert-item .alert-txt{font-size:13px;color:var(--navy)}
-.alert-item .alert-sub{font-size:11px;color:var(--g500);margin-top:2px}
-
-/* Resultado búsqueda */
+.stock-chip.ok{background:var(--ok-lt);color:var(--ok)}.stock-chip.err{background:var(--err-lt);color:var(--err)}
+/* SALDO */
+.saldo-box{display:none;background:var(--gold-lt);border:2px solid var(--gold);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+.saldo-box.show{display:block}
+.saldo-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.saldo-total{font-weight:700;font-size:16px;border-top:1px solid var(--gold);margin-top:8px;padding-top:10px}
+/* RESULT CARDS */
 .result-card{background:var(--white);border:1.5px solid var(--g200);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;transition:all .15s}
 .result-card:hover,.result-card.sel{border-color:var(--gold);background:var(--gold-lt)}
 .result-cip{font-size:11px;color:var(--g500);font-weight:600;letter-spacing:.08em;margin-bottom:2px}
 .result-name{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:8px}
 .result-row{display:flex;justify-content:space-between;font-size:12px;color:var(--g500);margin-bottom:3px}
 .result-row .rv{font-weight:600;color:var(--navy)}
-
-/* Saldo detalle */
-.saldo-box{display:none;background:var(--gold-lt);border:2px solid var(--gold);border-radius:var(--radius);padding:18px;margin-bottom:16px}
-.saldo-box.show{display:block}
-.saldo-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
-.saldo-total{font-weight:700;font-size:16px;border-top:1px solid var(--gold);margin-top:8px;padding-top:10px}
-
-/* Grid de 2 columnas */
+/* GRID */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-
-/* Últimas ventas */
+/* ULTIMAS VENTAS */
 .venta-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--g100)}
 .venta-item:last-child{border-bottom:none}
-.venta-info .venta-cliente{font-size:14px;font-weight:600;color:var(--navy)}
-.venta-info .venta-cip{font-size:11px;color:var(--g500);margin-top:2px}
-.venta-right{text-align:right}
-.venta-right .venta-monto{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:var(--navy)}
-.venta-right .venta-fecha{font-size:11px;color:var(--g500);margin-top:2px}
-
-/* Responsive */
-@media(min-width:600px){
-  .kpi-grid{grid-template-columns:repeat(4,1fr)}
-  .topbar-user{display:block}
-  .content{padding:24px 24px 40px}
-}
-@media(min-width:900px){
-  .kpi-grid{grid-template-columns:repeat(4,1fr)}
-}
-
-/* ── ESTILOS MÓDULO VENTAS ──────────────────────────────── */
-.filtros-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
-.filtros-bar input,.filtros-bar select{width:auto;flex:1;min-width:120px;padding:9px 12px;font-size:13px}
-.filtros-rapidos{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-.filtro-btn{padding:6px 14px;border:1.5px solid var(--g200);border-radius:20px;background:var(--white);font-size:12px;font-weight:600;color:var(--g500);cursor:pointer;transition:all .15s}
-.filtro-btn.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
-.resumen-bar{display:flex;gap:16px;flex-wrap:wrap;padding:12px 16px;background:var(--gold-lt);border:1px solid var(--gold);border-radius:var(--radius);margin-bottom:14px}
-.resumen-bar .rb-item{display:flex;flex-direction:column;gap:2px}
-.resumen-bar .rb-val{font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--navy)}
-.resumen-bar .rb-lbl{font-size:10px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em}
-.venta-desktop{display:none}
-.venta-mobile{display:block}
-@media(min-width:768px){.venta-desktop{display:table}.venta-mobile{display:none}}
-.vcard{background:var(--white);border:1px solid var(--g200);border-radius:var(--radius);padding:14px;margin-bottom:10px;border-left:4px solid var(--g200)}
-.vcard.contado{border-left-color:var(--ok)}
-.vcard.credito{border-left-color:var(--warn)}
-.vcard-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-.vcard-id{font-size:11px;font-weight:700;color:var(--g500);letter-spacing:.08em}
-.vcard-fecha{font-size:11px;color:var(--g400)}
-.vcard-cliente{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px}
-.vcard-cip{font-size:11px;color:var(--g500);margin-bottom:8px}
-.vcard-bottom{display:flex;justify-content:space-between;align-items:center}
-.vcard-precio{font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--navy)}
-.vcard-saldo-pend{font-size:12px;font-weight:600;color:var(--warn)}
-.vcard-saldo-ok{font-size:12px;font-weight:600;color:var(--ok)}
-table{width:max-content;min-width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
-
+.venta-cliente{font-size:14px;font-weight:600;color:var(--navy)}
+.venta-cip-small{font-size:11px;color:var(--g500);margin-top:2px}
+.venta-monto{font-size:15px;font-weight:700;color:var(--navy);text-align:right}
+.venta-fecha-small{font-size:11px;color:var(--g500);text-align:right;margin-top:2px}
+/* ALERTAS */
+.alert-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:8px;margin-bottom:8px;background:var(--warn-lt);border-left:3px solid var(--warn)}
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(31,45,61,.75);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:var(--white);border-radius:16px;padding:32px 28px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--navy);margin-bottom:20px}
+.modal-celeb{text-align:center;padding:8px 0}
+.modal-celeb .gem{font-size:64px;margin-bottom:12px}
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);padding:14px 24px;border-radius:var(--radius);font-size:14px;font-weight:500;z-index:300;transition:transform .3s;max-width:340px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.2);pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.ok{background:var(--ok);color:var(--white)}.toast.er{background:var(--err);color:var(--white)}.toast.warn{background:var(--warn);color:var(--white)}
+@media(min-width:600px){.kpi-grid{grid-template-columns:repeat(4,1fr)}.content{padding:24px 24px 40px}}
 </style>
 </head>
 <body>
 
-<!-- ── SPLASH ───────────────────────────────────────────── -->
-<div id="splash">
-  <div class="splash-gem">💎</div>
-  <div class="splash-title">Forever Diamonds</div>
-  <div class="splash-sub">Sistema de Gestión</div>
-  <div class="splash-msg" id="splashMsg">Conectando con el servidor...<br>Esto puede tomar hasta 50 segundos si el sistema estuvo inactivo.</div>
-  <div class="splash-bar-wrap">
-    <div class="splash-bar" id="splashBar"></div>
+<!-- MODAL CELEBRACIÓN -->
+<div class="modal-bg" id="modalCeleb">
+  <div class="modal">
+    <div class="modal-celeb">
+      <div class="gem">🎉</div>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--navy);margin-bottom:8px">¡Pagado al 100%!</h2>
+      <p style="font-size:14px;color:var(--g500);margin-bottom:24px">La venta de <strong id="celebNombre"></strong> quedó completamente saldada.</p>
+      <button class="btn btn-primary btn-full" onclick="cerrarModal('modalCeleb')">Perfecto</button>
+    </div>
   </div>
-  <div class="splash-pct" id="splashPct">0%</div>
 </div>
 
-<!-- ── LOGIN ────────────────────────────────────────────── -->
-<div id="loginPage" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy) 0%,#2a3f55 100%);padding:20px">
+<!-- MODAL CONFIRMACIÓN VENTA -->
+<div class="modal-bg" id="modalConfVenta">
+  <div class="modal">
+    <div class="modal-title">✅ Confirmar Venta</div>
+    <div id="conf-resumen" style="background:var(--g50);border-radius:8px;padding:14px;margin-bottom:20px;font-size:13px"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-secondary" style="flex:1" onclick="cerrarModal('modalConfVenta')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:2" id="btn-conf-venta" onclick="ejecutarRegistroVenta()">✓ Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO CLIENTE -->
+<div class="modal-bg" id="modalNuevoCliente">
+  <div class="modal">
+    <div class="modal-title">👤 Nuevo Cliente</div>
+    <div class="field"><label class="lbl">Nombre <span class="req">*</span></label><input type="text" id="nc-nombre"/></div>
+    <div class="field"><label class="lbl">Teléfono</label><input type="text" id="nc-telefono"/></div>
+    <div class="field"><label class="lbl">Email</label><input type="email" id="nc-email"/></div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-secondary" style="flex:1" onclick="cerrarModal('modalNuevoCliente')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:2" onclick="guardarNuevoCliente()">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginPage">
   <div class="login-card">
     <div class="login-gem">💎</div>
     <div class="login-brand">Forever Diamonds</div>
     <div class="login-tagline">Sistema de Gestión</div>
-    <div class="login-field">
-      <label>Usuario</label>
-      <input type="text" id="lu" placeholder="Tu nombre" autocomplete="username"/>
-    </div>
-    <div class="login-field">
-      <label>Contraseña</label>
-      <input type="password" id="lp" placeholder="••••••••" autocomplete="current-password"
-        onkeydown="if(event.key==='Enter')doLogin()"/>
-    </div>
+    <div class="login-field"><label>Usuario</label><input type="text" id="lu" placeholder="Tu nombre" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <div class="login-field"><label>Contraseña</label><input type="password" id="lp" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
     <button class="login-btn" onclick="doLogin()">Ingresar al Sistema</button>
     <div class="login-err" id="loginErr">Usuario o contraseña incorrectos</div>
     <div class="login-footer">Forever Diamonds © 2026</div>
   </div>
 </div>
 
-<!-- ── MODAL PAGO COMPLETO ───────────────────────────────── -->
-<div class="modal-bg" id="modalCelebracion">
-  <div class="modal">
-    <div class="modal-celebration">
-      <div class="big">🎉</div>
-      <h2>¡Pagado al 100%!</h2>
-      <p>La venta de <strong id="celebCliente"></strong> quedó completamente saldada.<br>El saldo es <strong>$0.00</strong>.</p>
-      <button class="btn btn-primary btn-full" onclick="cerrarModal('modalCelebracion')">Perfecto</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── APP ───────────────────────────────────────────────── -->
+<!-- APP -->
 <div id="app" style="display:none;flex-direction:column;min-height:100vh">
-
-  <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-left">
-      <div class="topbar-logo">💎 Forever Diamonds</div>
-    </div>
+    <div class="topbar-logo">💎 Forever Diamonds</div>
     <div class="topbar-right">
       <div class="topbar-user" id="topbarUser"></div>
       <button class="topbar-logout" onclick="doLogout()">Salir</button>
     </div>
   </div>
-
-  <!-- NAV -->
-  <div class="nav-desktop" id="navDesktop">
-    <div class="nav-item active" onclick="showPanel('dashboard',this)"><span class="icon">📊</span>Dashboard</div>
-    <div class="nav-item" onclick="showPanel('ventas-lista',this);cargarListaVentas()"><span class="icon">📋</span>Ventas</div>
-    <div class="nav-item" onclick="showPanel('ventas',this);if(catalogoData.length===0){cargarCatalogo();cargarClientesCache();}"><span class="icon">🛍️</span>Nueva Venta</div>
-    <div class="nav-item" onclick="showPanel('pagos',this)"><span class="icon">💰</span>Registrar Pago</div>
-    <div class="nav-item" onclick="showPanel('inventario',this);if(inventarioData.length===0)cargarCatalogo()"><span class="icon">📦</span>Inventario</div>
-    <div class="nav-item" onclick="showPanel('cxc',this);cargarCXC()"><span class="icon">📋</span>Créditos</div>
-    <div class="nav-item" onclick="showPanel('compras',this)"><span class="icon">🧾</span>Compras</div>
-    <div class="nav-item" onclick="showPanel('devoluciones',this)"><span class="icon">↩️</span>Devoluciones</div>
-    <div class="nav-item" onclick="showPanel('reportes',this)"><span class="icon">📈</span>Reportes</div>
-    <div class="nav-item" onclick="showPanel('auditoria',this)"><span class="icon">🔍</span>Auditoría</div>
+  <div class="nav-desktop">
+    <div class="nav-item active" onclick="showPanel('dashboard',this)">📊 Tablero</div>
+    <div class="nav-item" onclick="showPanel('ventas-lista',this);cargarListaVentas()">📋 Ventas</div>
+    <div class="nav-item" onclick="showPanel('nueva-venta',this);prepararNuevaVenta()">🛍️ Nueva Venta</div>
+    <div class="nav-item" onclick="showPanel('pagos',this)">💰 Registrar Pago</div>
+    <div class="nav-item" onclick="showPanel('inventario',this);if(!inventarioData.length)cargarCatalogo()">📦 Inventario</div>
+    <div class="nav-item" onclick="showPanel('creditos',this);cargarCXC()">📋 Créditos</div>
+    <div class="nav-item" onclick="showPanel('reportes',this)">📈 Reportes</div>
   </div>
-
   <div class="content">
 
-    <!-- ══ DASHBOARD ══════════════════════════════════════ -->
+    <!-- DASHBOARD -->
     <div class="panel active" id="panel-dashboard">
-
-      <!-- KPIs fila 1 -->
       <div class="kpi-grid">
-        <div class="kpi k-gold">
-          <div class="kpi-icon">🛍️</div>
-          <div class="kpi-val" id="d-nventas">—</div>
-          <div class="kpi-label">Ventas Totales</div>
-          <div class="kpi-sub" id="d-nventas-sub"></div>
-        </div>
-        <div class="kpi k-ok">
-          <div class="kpi-icon">💵</div>
-          <div class="kpi-val" id="d-monto">—</div>
-          <div class="kpi-label">Monto Vendido</div>
-          <div class="kpi-sub">Precio final acumulado</div>
-        </div>
-        <div class="kpi k-info">
-          <div class="kpi-icon">📋</div>
-          <div class="kpi-val" id="d-creditos">—</div>
-          <div class="kpi-label">Créditos Activos</div>
-          <div class="kpi-sub" id="d-creditos-sub"></div>
-        </div>
-        <div class="kpi k-warn">
-          <div class="kpi-icon">⏳</div>
-          <div class="kpi-val" id="d-cxc">—</div>
-          <div class="kpi-label">Saldo por Cobrar</div>
-          <div class="kpi-sub">Pendiente de pago</div>
-        </div>
+        <div class="kpi k-gold"><div class="kpi-icon">🛍️</div><div class="kpi-val" id="d-ventas">—</div><div class="kpi-label">Ventas Totales</div></div>
+        <div class="kpi k-ok"><div class="kpi-icon">💵</div><div class="kpi-val" id="d-monto">—</div><div class="kpi-label">Monto Vendido</div></div>
+        <div class="kpi k-info"><div class="kpi-icon">📋</div><div class="kpi-val" id="d-creditos">—</div><div class="kpi-label">Créditos Activos</div><div class="kpi-sub" id="d-cxc-sub"></div></div>
+        <div class="kpi k-warn"><div class="kpi-icon">⏳</div><div class="kpi-val" id="d-cxc">—</div><div class="kpi-label">Saldo por Cobrar</div></div>
       </div>
-
-      <!-- KPIs fila 2 -->
       <div class="kpi-grid">
-        <div class="kpi k-info">
-          <div class="kpi-icon">📦</div>
-          <div class="kpi-val" id="d-productos">—</div>
-          <div class="kpi-label">Modelos en Catálogo</div>
-          <div class="kpi-sub" id="d-stock-sub"></div>
-        </div>
-        <div class="kpi k-ok">
-          <div class="kpi-icon">✅</div>
-          <div class="kpi-val" id="d-en-stock">—</div>
-          <div class="kpi-label">Con Stock Disponible</div>
-          <div class="kpi-sub">Listos para vender</div>
-        </div>
-        <div class="kpi k-err">
-          <div class="kpi-icon">⚠️</div>
-          <div class="kpi-val" id="d-agotados">—</div>
-          <div class="kpi-label">Agotados</div>
-          <div class="kpi-sub">Stock = 0</div>
-        </div>
-        <div class="kpi k-gold">
-          <div class="kpi-icon">💎</div>
-          <div class="kpi-val" id="d-ganancia">—</div>
-          <div class="kpi-label">Ganancia Bruta</div>
-          <div class="kpi-sub" id="d-margen-sub"></div>
-        </div>
+        <div class="kpi k-info"><div class="kpi-icon">📦</div><div class="kpi-val" id="d-productos">—</div><div class="kpi-label">Modelos en Catálogo</div></div>
+        <div class="kpi k-ok"><div class="kpi-icon">✅</div><div class="kpi-val" id="d-enstock">—</div><div class="kpi-label">Con Stock</div></div>
+        <div class="kpi k-err"><div class="kpi-icon">⚠️</div><div class="kpi-val" id="d-agotados">—</div><div class="kpi-label">Agotados</div></div>
+        <div class="kpi k-gold"><div class="kpi-icon">💎</div><div class="kpi-val" id="d-ganancia">—</div><div class="kpi-label">Ingresos Acumulados</div></div>
       </div>
+      <div class="card"><div class="card-title">🕐 Últimas Ventas</div><div id="d-ultimas">Cargando...</div></div>
+      <div class="card"><div class="card-title">🚨 Alertas</div><div id="d-alertas">Verificando...</div></div>
+    </div>
 
-      <!-- Gráfico de ventas + Últimas ventas -->
-      <div style="display:grid;grid-template-columns:1fr;gap:16px">
-
-        <!-- Últimas ventas -->
-        <div class="card">
-          <div class="card-title">🕐 Últimas Ventas Registradas</div>
-          <div id="d-ultimas-ventas">
-            <div style="text-align:center;padding:20px;color:var(--g400)">Cargando...</div>
-          </div>
-        </div>
-
-        <!-- Alertas -->
-        <div class="card" id="d-alertas-card">
-          <div class="card-title">🚨 Alertas del Sistema</div>
-          <div id="d-alertas">
-            <div style="text-align:center;padding:20px;color:var(--g400)">Verificando...</div>
-          </div>
-        </div>
-
-      </div>
-    </div><!-- /dashboard -->
-
-    
-    <!-- ══ LISTA DE VENTAS ════════════════════════════════════ -->
+    <!-- LISTA VENTAS -->
     <div class="panel" id="panel-ventas-lista">
       <div class="resumen-bar">
-        <div class="rb-item"><div class="rb-val" id="vl-total">—</div><div class="rb-lbl">Total Ventas</div></div>
-        <div class="rb-item"><div class="rb-val" id="vl-monto">—</div><div class="rb-lbl">Monto Total</div></div>
+        <div class="rb-item"><div class="rb-val" id="vl-total">—</div><div class="rb-lbl">Total</div></div>
+        <div class="rb-item"><div class="rb-val" id="vl-monto">—</div><div class="rb-lbl">Monto</div></div>
         <div class="rb-item"><div class="rb-val" id="vl-contado-n">—</div><div class="rb-lbl">Contado</div></div>
         <div class="rb-item"><div class="rb-val" id="vl-credito-n">—</div><div class="rb-lbl">Crédito</div></div>
         <div class="rb-item"><div class="rb-val" id="vl-saldo">—</div><div class="rb-lbl">Saldo Pendiente</div></div>
@@ -494,489 +259,443 @@ table{width:max-content;min-width:100%;border-collapse:collapse;font-size:12px;w
           <input type="text" id="vl-buscar" placeholder="🔍 Buscar cliente, CIP o ID..." oninput="vlFiltrar()"/>
           <input type="date" id="vl-desde" onchange="vlFiltrar()"/>
           <input type="date" id="vl-hasta" onchange="vlFiltrar()"/>
-          <select id="vl-tipo" onchange="vlFiltrar()">
-            <option value="">Todos los tipos</option>
-            <option value="Contado">Contado</option>
-            <option value="Crédito">Crédito</option>
-          </select>
-          <button class="btn btn-secondary btn-sm" onclick="vlLimpiar()">Limpiar filtros</button>
+          <select id="vl-tipo" onchange="vlFiltrar()"><option value="">Todos los tipos</option><option value="Contado">Contado</option><option value="Crédito">Crédito</option></select>
+          <button class="btn btn-secondary btn-sm" onclick="vlLimpiar()">Limpiar</button>
         </div>
       </div>
       <div class="venta-mobile" id="vl-cards"></div>
-      <div class="card" style="padding:0;overflow-x:auto;overflow-y:visible">
+      <div class="card" style="padding:0;overflow-x:auto">
         <div class="table-wrap venta-desktop">
           <table>
             <thead><tr>
-              <th style="cursor:pointer" onclick="vlOrdenar('id_venta')">ID ↕</th>
-              <th style="cursor:pointer" onclick="vlOrdenar('fecha_venta')">Fecha ↕</th>
-              <th>Cliente</th>
-              <th>CIP</th>
-              <th>Descripción</th>
-              <th style="cursor:pointer" onclick="vlOrdenar('precio_final')">P. Final ↕</th>
-              <th>Ajuste</th>
-              <th>Método Pago</th>
-              <th>Tipo</th>
-              <th>Saldo</th>
-              <th>Estado</th>
+              <th onclick="vlOrdenar('id_venta')" style="cursor:pointer">ID ↕</th>
+              <th onclick="vlOrdenar('fecha_venta')" style="cursor:pointer">Fecha ↕</th>
+              <th>Cliente</th><th>CIP</th><th>Descripción</th>
+              <th onclick="vlOrdenar('precio_final')" style="cursor:pointer">P.Final ↕</th>
+              <th>Ajuste</th><th>Método</th><th>Tipo</th><th>Saldo</th><th>Estado</th>
             </tr></thead>
             <tbody id="vl-tbody"></tbody>
           </table>
         </div>
       </div>
-      <div class="paginacion" style="margin-top:12px">
-        <span id="vl-info"></span>
-        <div class="pag-btns" id="vl-pags"></div>
-      </div>
+      <div class="paginacion" style="margin-top:12px"><span id="vl-info"></span><div class="pag-btns" id="vl-pags"></div></div>
     </div>
 
-        <!-- ══ NUEVA VENTA ═════════════════════════════════════ -->
-    <div class="panel" id="panel-ventas">
+    <!-- NUEVA VENTA -->
+    <div class="panel" id="panel-nueva-venta">
       <div class="card">
         <div class="card-title">🛍️ Registrar Nueva Venta</div>
-
-        <!-- PASO 1: Buscar CIP -->
         <div class="field">
           <label class="lbl">Código CIP <span class="req">*</span></label>
-          <div style="position:relative">
-            <input type="text" id="v-cip" placeholder="Escribe código, descripción o material..."
-              autocomplete="off" spellcheck="false" oninput="onCIPInput()" style="padding-right:36px"/>
-            <span id="v-cip-loading" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--g400)">⏳</span>
-          </div>
-          <div id="v-cip-sugs" style="display:none;background:var(--white);border:1.5px solid var(--gold);border-radius:8px;margin-top:4px;max-height:240px;overflow-y:auto;box-shadow:var(--shadow-md);z-index:50;position:relative"></div>
+          <input type="text" id="v-cip" placeholder="Escribe código, descripción o material..." autocomplete="off" oninput="onCIPInput()"/>
+          <div id="v-cip-sugs" style="display:none;background:var(--white);border:1.5px solid var(--gold);border-radius:8px;margin-top:4px;max-height:240px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.12);position:relative;z-index:50"></div>
         </div>
-
-        <!-- Preview precio -->
         <div class="precio-preview" id="v-precio-box">
-          <div class="precio-row"><span class="lbl2">Descripción</span><span class="val2" id="vp-desc" style="font-size:12px;color:var(--g500)">—</span></div>
-          <div class="precio-row"><span class="lbl2">Costo Landed</span><span class="val2" id="vp-costo">—</span></div>
-          <div class="precio-row"><span class="lbl2">Factor de Venta</span><span class="val2" id="vp-factor">—</span></div>
-          <div class="precio-row"><span class="lbl2">Precio de Venta</span><span class="val2" id="vp-precio">—</span></div>
-          <div class="precio-row"><span class="lbl2">Ajuste / Descuento</span><span class="val2" id="vp-ajuste">— $0.00</span></div>
+          <div class="precio-row"><span style="color:var(--g500)">Descripción</span><span id="vp-desc" style="font-size:12px;color:var(--g500)">—</span></div>
+          <div class="precio-row"><span style="color:var(--g500)">Costo Landed</span><span id="vp-costo">—</span></div>
+          <div class="precio-row"><span style="color:var(--g500)">Factor de Venta</span><span id="vp-factor">—</span></div>
+          <div class="precio-row"><span style="color:var(--g500)">Precio de Venta</span><span id="vp-precio">—</span></div>
+          <div class="precio-row"><span style="color:var(--g500)">Ajuste</span><span id="vp-ajuste">— $0.00</span></div>
           <div class="precio-row sep"><span>Precio Final</span><span id="vp-final" style="font-size:18px">—</span></div>
-          <div id="vp-stock-chip" style="margin-top:8px"></div>
+          <div id="vp-stock"></div>
         </div>
-
-        <!-- PASO 2: Fecha -->
-        <div class="field">
-          <label class="lbl">Fecha de Venta <span class="req">*</span></label>
-          <input type="date" id="v-fecha" onchange="calcularPrecioVenta()"/>
-        </div>
-
-        <!-- PASO 3: Cliente con autocompletado -->
+        <div class="field"><label class="lbl">Fecha de Venta <span class="req">*</span></label><input type="date" id="v-fecha" onchange="calcularPrecio()"/></div>
         <div class="field">
           <label class="lbl">Cliente <span class="req">*</span></label>
-          <div style="position:relative">
-            <input type="text" id="v-cliente" placeholder="Escribe el nombre del cliente..."
-              autocomplete="off" oninput="onClienteInput()" onblur="setTimeout(()=>{document.getElementById('v-cli-sugs').style.display='none'},200)"/>
-          </div>
-          <div id="v-cli-sugs" style="display:none;background:var(--white);border:1.5px solid var(--gold);border-radius:8px;margin-top:4px;max-height:180px;overflow-y:auto;box-shadow:var(--shadow-md);position:relative;z-index:50"></div>
-          <div id="v-cliente-nuevo" style="display:none;margin-top:8px;padding:10px;background:var(--info-lt);border-radius:8px;border:1px solid var(--info)">
-            <span style="font-size:13px;color:var(--info-blue,#1A4F8A)">⚠️ Cliente nuevo — se registrará automáticamente al guardar la venta.</span>
-          </div>
+          <input type="text" id="v-cliente" placeholder="Nombre del cliente..." autocomplete="off" oninput="onClienteInput()"/>
+          <div id="v-cli-sugs" style="display:none;background:var(--white);border:1.5px solid var(--gold);border-radius:8px;margin-top:4px;max-height:180px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.12);position:relative;z-index:50"></div>
+          <div id="v-cli-nuevo" style="display:none;margin-top:8px;padding:10px;background:var(--info-lt);border-radius:8px"></div>
         </div>
-
-        <!-- PASO 4: Ajuste -->
-        <div class="field">
-          <label class="lbl">Ajuste de Precio (USD)</label>
-          <input type="number" id="v-ajuste" placeholder="0.00" step="0.01" min="0" value="0" oninput="actualizarPrecioFinal()"/>
-          <div style="font-size:11px;color:var(--g500);margin-top:4px">Dejar en 0 si no hay descuento</div>
-        </div>
-
-        <!-- PASO 5: Método y tipo -->
+        <div class="field"><label class="lbl">Ajuste de Precio (USD)</label><input type="number" id="v-ajuste" placeholder="0.00" step="0.01" min="0" value="0" oninput="actualizarFinal()"/></div>
         <div class="grid2">
-          <div class="field">
-            <label class="lbl">Método de Pago <span class="req">*</span></label>
-            <select id="v-metodo">
-              <option value="">— Seleccionar —</option>
-              <option>Efectivo</option>
-              <option>Tarjeta Crédito</option>
-              <option>Tarjeta Débito</option>
-              <option>Transferencia</option>
-              <option>Nota de Crédito</option>
-              <option>Crédito</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="lbl">Tipo de Venta <span class="req">*</span></label>
-            <select id="v-tipo">
-              <option value="">— Seleccionar —</option>
-              <option>Contado</option>
-              <option>Crédito</option>
-            </select>
-          </div>
+          <div class="field"><label class="lbl">Método de Pago <span class="req">*</span></label>
+            <select id="v-metodo"><option value="">— Seleccionar —</option><option>Efectivo</option><option>Tarjeta Crédito</option><option>Tarjeta Débito</option><option>Transferencia</option><option>Nota de Crédito</option><option>Crédito</option></select></div>
+          <div class="field"><label class="lbl">Tipo de Venta <span class="req">*</span></label>
+            <select id="v-tipo"><option value="">— Seleccionar —</option><option>Contado</option><option>Crédito</option></select></div>
         </div>
-
-        <div class="field">
-          <label class="lbl">Observaciones</label>
-          <textarea id="v-obs" placeholder="Notas adicionales sobre la venta..."></textarea>
-        </div>
-
-        <button class="btn btn-primary btn-full" id="btn-venta" onclick="abrirConfirmacionVenta()">
-          Revisar y Confirmar Venta
-        </button>
+        <div class="field"><label class="lbl">Observaciones</label><textarea id="v-obs" placeholder="Notas adicionales..."></textarea></div>
+        <button class="btn btn-primary btn-full" onclick="abrirConfirmVenta()">Revisar y Confirmar Venta</button>
       </div>
     </div>
 
-    <!-- MODAL CONFIRMACIÓN VENTA -->
-    <div class="modal-bg" id="modalConfVenta">
-      <div class="modal">
-        <div class="modal-title">✅ Confirmar Venta</div>
-        <div id="conf-resumen" style="background:var(--g50);border-radius:8px;padding:14px;margin-bottom:20px;font-size:13px"></div>
-        <div style="display:flex;gap:10px">
-          <button class="btn btn-secondary" style="flex:1" onclick="cerrarModal('modalConfVenta')">Cancelar</button>
-          <button class="btn btn-primary" style="flex:2" id="btn-conf-venta" onclick="registrarVenta()">✓ Confirmar y Registrar</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL NUEVO CLIENTE -->
-    <div class="modal-bg" id="modalNuevoCliente">
-      <div class="modal">
-        <div class="modal-title">👤 Registrar Nuevo Cliente</div>
-        <div class="field">
-          <label class="lbl">Nombre Completo <span class="req">*</span></label>
-          <input type="text" id="nc-nombre" placeholder="Nombre del cliente"/>
-        </div>
-        <div class="field">
-          <label class="lbl">Teléfono</label>
-          <input type="text" id="nc-telefono" placeholder="Ej: +51 999 999 999"/>
-        </div>
-        <div class="field">
-          <label class="lbl">Email</label>
-          <input type="email" id="nc-email" placeholder="correo@ejemplo.com"/>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:8px">
-          <button class="btn btn-secondary" style="flex:1" onclick="cerrarModal('modalNuevoCliente')">Cancelar</button>
-          <button class="btn btn-primary" style="flex:2" onclick="registrarNuevoCliente()">Registrar Cliente</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ REGISTRAR PAGO ══════════════════════════════════ -->
+    <!-- PAGOS -->
     <div class="panel" id="panel-pagos">
       <div class="card">
-        <div class="card-title">💰 Registrar Pago a Crédito</div>
-        <div class="search-wrap">
-          <span class="search-ico">🔍</span>
-          <input type="text" id="p-buscar" placeholder="Buscar por nombre de cliente o Código CIP"
-            oninput="buscarVentaCredito()"/>
-        </div>
+        <div class="card-title">💰 Registrar Pago</div>
+        <input type="text" id="p-buscar" placeholder="🔍 Buscar cliente o CIP..." oninput="buscarParaPago()" style="margin-bottom:14px"/>
         <div id="p-resultados"></div>
       </div>
-
       <div class="saldo-box" id="saldo-box">
-        <div class="card-title">Resumen de la Venta Seleccionada</div>
+        <div class="card-title" style="margin-bottom:12px">Resumen de la Venta</div>
         <div id="saldo-resumen"></div>
-        <div class="field" style="margin-top:16px">
-          <label class="lbl">Fecha del Pago <span class="req">*</span></label>
-          <input type="date" id="p-fecha"/>
-        </div>
-        <div class="field">
-          <label class="lbl">Monto a Pagar (USD) <span class="req">*</span></label>
-          <input type="number" id="p-monto" placeholder="0.00" step="0.01" min="0.01"/>
-        </div>
-        <div class="field">
-          <label class="lbl">Método de Pago <span class="req">*</span></label>
-          <select id="p-metodo">
-            <option value="">— Seleccionar —</option>
-            <option>Efectivo</option>
-            <option>Tarjeta Crédito</option>
-            <option>Tarjeta Débito</option>
-            <option>Transferencia</option>
-          </select>
-        </div>
-        <div class="field">
-          <label class="lbl">Notas</label>
-          <textarea id="p-notas" placeholder="Número de transferencia, referencia, etc."></textarea>
-        </div>
-        <button class="btn btn-primary btn-full" id="btn-pago" onclick="registrarPago()">
-          Registrar Pago
-        </button>
+        <div class="field" style="margin-top:14px"><label class="lbl">Fecha del Pago <span class="req">*</span></label><input type="date" id="p-fecha"/></div>
+        <div class="field"><label class="lbl">Monto (USD) <span class="req">*</span></label><input type="number" id="p-monto" placeholder="0.00" step="0.01" min="0.01"/></div>
+        <div class="field"><label class="lbl">Método de Pago <span class="req">*</span></label>
+          <select id="p-metodo"><option value="">— Seleccionar —</option><option>Efectivo</option><option>Tarjeta Crédito</option><option>Tarjeta Débito</option><option>Transferencia</option></select></div>
+        <div class="field"><label class="lbl">Notas</label><textarea id="p-notas" placeholder="Referencia, número de transferencia..."></textarea></div>
+        <button class="btn btn-primary btn-full" id="btn-pago" onclick="ejecutarPago()">Registrar Pago</button>
       </div>
     </div>
 
-    <!-- ══ INVENTARIO ══════════════════════════════════════ -->
+    <!-- INVENTARIO -->
     <div class="panel" id="panel-inventario">
       <div class="card">
         <div class="card-title">📦 Inventario y Stock</div>
-        <div class="search-wrap">
-          <span class="search-ico">🔍</span>
-          <input type="text" id="inv-q" placeholder="Buscar por CIP, descripción, material o proveedor"
-            oninput="filtrarInventario()"/>
-        </div>
+        <input type="text" id="inv-q" placeholder="🔍 Buscar por CIP, descripción, material..." oninput="filtrarInventario()" style="margin-bottom:14px"/>
         <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Código CIP</th>
-                <th>Descripción</th>
-                <th>Material</th>
-                <th>Talla</th>
-                <th>Proveedor</th>
-                <th>Precio Venta</th>
-                <th>Stock</th>
-              </tr>
-            </thead>
-            <tbody id="inv-tbody">
-              <tr><td colspan="7" style="text-align:center;padding:20px;color:var(--g400)">Cargando inventario...</td></tr>
-            </tbody>
-          </table>
+          <table><thead><tr><th>Código CIP</th><th>Descripción</th><th>Material</th><th>Talla</th><th>Proveedor</th><th>Stock</th></tr></thead>
+          <tbody id="inv-tbody"><tr><td colspan="6" style="text-align:center;padding:20px;color:var(--g400)">Cargando...</td></tr></tbody></table>
         </div>
-        <div class="paginacion">
-          <span id="inv-info"></span>
-          <div class="pag-btns" id="inv-pags"></div>
-        </div>
+        <div class="paginacion"><span id="inv-info"></span><div class="pag-btns" id="inv-pags"></div></div>
       </div>
     </div>
 
-    <!-- ══ CRÉDITOS (CxC) ══════════════════════════════════ -->
-    <div class="panel" id="panel-cxc">
+    <!-- CRÉDITOS -->
+    <div class="panel" id="panel-creditos">
       <div class="card">
-        <div class="card-title">📋 Cuentas por Cobrar — Créditos Activos</div>
+        <div class="card-title">📋 Cuentas por Cobrar</div>
         <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID Venta</th>
-                <th>Fecha</th>
-                <th>Cliente</th>
-                <th>CIP</th>
-                <th>Precio Final</th>
-                <th>Pagado</th>
-                <th>Saldo</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody id="cxc-tbody">
-              <tr><td colspan="8" style="text-align:center;padding:20px;color:var(--g400)">Cargando...</td></tr>
-            </tbody>
-          </table>
+          <table><thead><tr><th>ID</th><th>Fecha</th><th>Cliente</th><th>CIP</th><th>P.Final</th><th>Pagado</th><th>Saldo</th><th>Estado</th></tr></thead>
+          <tbody id="cxc-tbody"><tr><td colspan="8" style="text-align:center;padding:20px;color:var(--g400)">Cargando...</td></tr></tbody></table>
         </div>
       </div>
     </div>
 
-    <!-- ══ COMPRAS ═════════════════════════════════════════ -->
-    <div class="panel" id="panel-compras">
-      <div class="card">
-        <div class="card-title">🧾 Registrar Nueva Compra</div>
-        <div class="grid2">
-          <div class="field">
-            <label class="lbl">Proveedor <span class="req">*</span></label>
-            <select id="c-prov" onchange="onProveedorChange()">
-              <option value="">— Seleccionar —</option>
-              <option>TAKA</option>
-              <option>JODI</option>
-              <option>KAYRA</option>
-              <option>SARRAF</option>
-              <option>NOBLE</option>
-              <option>CAMEX</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="lbl">N° Factura <span class="req">*</span></label>
-            <input type="text" id="c-factura" placeholder="Ej: INU07621"/>
-          </div>
-        </div>
-        <div class="grid2">
-          <div class="field">
-            <label class="lbl">Fecha de Compra <span class="req">*</span></label>
-            <input type="date" id="c-fecha"/>
-          </div>
-          <div class="field">
-            <label class="lbl">Lote <span class="req">*</span></label>
-            <select id="c-lote">
-              <option value="">— Seleccionar —</option>
-              <option>Lote 3</option>
-              <option>Lote 4</option>
-            </select>
-          </div>
-        </div>
-        <div class="field">
-          <label class="lbl">Código del Proveedor</label>
-          <input type="text" id="c-codprov" placeholder="Ej: DRK7742R01M18W"/>
-        </div>
-        <div class="field">
-          <label class="lbl">Descripción <span class="req">*</span></label>
-          <input type="text" id="c-desc" placeholder="Ej: Anillo Oro Blanco Con Diamante"/>
-        </div>
-        <div class="field">
-          <label class="lbl">Detalle Técnico</label>
-          <input type="text" id="c-detalle" placeholder="Ej: 83 RD D 0.635CT / 18W 3.72GM"/>
-        </div>
-        <div class="grid3">
-          <div class="field">
-            <label class="lbl">Material</label>
-            <select id="c-material">
-              <option value="">—</option>
-              <option>18KY</option>
-              <option>18KW</option>
-              <option>18KR</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="lbl">Talla</label>
-            <input type="text" id="c-talla" placeholder="Ej: US#6.5"/>
-          </div>
-          <div class="field">
-            <label class="lbl">Peso (g)</label>
-            <input type="number" id="c-peso" placeholder="0.00" step="0.01"/>
-          </div>
-        </div>
-        <div class="grid3">
-          <div class="field">
-            <label class="lbl">Precio Lista <span class="req">*</span></label>
-            <input type="number" id="c-lista" placeholder="0.00" step="0.01" oninput="calcCompra()"/>
-          </div>
-          <div class="field">
-            <label class="lbl">Descuento</label>
-            <input type="number" id="c-desc2" placeholder="0.00" step="0.01" value="0" id="c-descuento" oninput="calcCompra()"/>
-          </div>
-          <div class="field">
-            <label class="lbl">Cantidad <span class="req">*</span></label>
-            <input type="number" id="c-cantidad" placeholder="1" min="1" value="1"/>
-          </div>
-        </div>
-
-        <!-- Preview precio neto -->
-        <div id="c-preview" style="display:none;background:var(--gold-lt);border:1.5px solid var(--gold);border-radius:8px;padding:14px;margin:10px 0">
-          <div class="precio-row"><span class="lbl2">Precio Lista</span><span class="val2" id="cp-lista">—</span></div>
-          <div class="precio-row"><span class="lbl2">Descuento</span><span class="val2" id="cp-desc">— $0.00</span></div>
-          <div class="precio-row sep"><span>Precio Neto</span><span id="cp-neto">—</span></div>
-        </div>
-
-        <div id="c-gasto-especial" style="display:none" class="card" style="background:var(--warn-lt)">
-          <div class="card-title" style="font-size:14px">⚠️ Cargos Especiales (van a Gastos de Compra)</div>
-          <div class="field">
-            <label class="lbl">Monto del Cargo Especial</label>
-            <input type="number" id="c-cargo" placeholder="0.00" step="0.01" value="0"/>
-          </div>
-          <div class="field">
-            <label class="lbl">Descripción del Cargo</label>
-            <input type="text" id="c-cargo-desc" placeholder="Ej: Special Charge, Flete, Seguro..."/>
-          </div>
-        </div>
-
-        <button class="btn btn-primary btn-full" onclick="toast('Módulo de compras — conectando al servidor. Disponible próximamente.','warn')">
-          Registrar Compra
-        </button>
-      </div>
-    </div>
-
-    <!-- ══ DEVOLUCIONES ════════════════════════════════════ -->
-    <div class="panel" id="panel-devoluciones">
-      <div class="card">
-        <div class="card-title">↩️ Registrar Devolución</div>
-        <p style="color:var(--g500);font-size:13px;margin-bottom:16px">Busca la venta original para procesarla como devolución.</p>
-        <div class="search-wrap">
-          <span class="search-ico">🔍</span>
-          <input type="text" id="dev-q" placeholder="Buscar venta por cliente o CIP" oninput="buscarVentaDev()"/>
-        </div>
-        <div id="dev-resultados"></div>
-        <div id="dev-form" style="display:none">
-          <div class="field">
-            <label class="lbl">Motivo de la Devolución <span class="req">*</span></label>
-            <select id="dev-motivo">
-              <option value="">— Seleccionar —</option>
-              <option>Cambio de joya</option>
-              <option>Defecto del producto</option>
-              <option>No era lo esperado</option>
-              <option>Talla incorrecta</option>
-              <option>Otro</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="lbl">Destino del Dinero <span class="req">*</span></label>
-            <select id="dev-destino">
-              <option value="">— Seleccionar —</option>
-              <option>Reembolso en efectivo</option>
-              <option>Nota de crédito (saldo a favor)</option>
-              <option>Cambio por otra joya</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="lbl">Observaciones</label>
-            <textarea id="dev-obs" placeholder="Detalles adicionales de la devolución..."></textarea>
-          </div>
-          <button class="btn btn-danger btn-full" onclick="toast('Módulo de devoluciones — próximamente.','warn')">
-            Procesar Devolución
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ REPORTES ════════════════════════════════════════ -->
+    <!-- REPORTES -->
     <div class="panel" id="panel-reportes">
       <div class="card">
         <div class="card-title">📈 Motor de Reportes</div>
         <div class="grid2" style="margin-bottom:16px">
-          <div class="field">
-            <label class="lbl">Desde <span class="req">*</span></label>
-            <input type="date" id="r-desde"/>
-          </div>
-          <div class="field">
-            <label class="lbl">Hasta <span class="req">*</span></label>
-            <input type="date" id="r-hasta"/>
-          </div>
+          <div class="field"><label class="lbl">Desde <span class="req">*</span></label><input type="date" id="r-desde"/></div>
+          <div class="field"><label class="lbl">Hasta <span class="req">*</span></label><input type="date" id="r-hasta"/></div>
         </div>
-        <button class="btn btn-primary btn-full" onclick="generarReporte()">
-          📊 Generar Reporte
-        </button>
+        <button class="btn btn-primary btn-full" onclick="generarReporte()">📊 Generar Reporte</button>
       </div>
       <div id="reporte-resultado"></div>
     </div>
 
-    <!-- ══ AUDITORÍA ═══════════════════════════════════════ -->
-    <div class="panel" id="panel-auditoria">
-      <div class="card">
-        <div class="card-title">🔍 Panel de Auditoría — 13 Controles</div>
-        <button class="btn btn-primary" onclick="ejecutarAuditoria()" style="margin-bottom:16px">
-          🔄 Ejecutar Auditoría
-        </button>
-        <div id="audit-resultado">
-          <div style="text-align:center;padding:20px;color:var(--g400)">
-            Presiona "Ejecutar Auditoría" para verificar la integridad del sistema.
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /content -->
-</div><!-- /app -->
-
-<!-- TOAST -->
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
-// ── CONFIGURACIÓN ────────────────────────────────────────
-const API = 'https://forever-diamonds.onrender.com';
-const USUARIOS = {
-  'miguel': { pass: '140587$', nombre: 'Miguel' },
-  'thalia': { pass: 'FAVAS2026$', nombre: 'Thalia' }
-};
+var API = 'https://forever-diamonds.onrender.com';
+var USUARIOS = { 'miguel': { pass: '140587$', nombre: 'Miguel' }, 'thalia': { pass: 'FAVAS2026$', nombre: 'Thalia' } };
+var sesion = null;
+var catalogoData = [];
+var inventarioData = [];
+var invPagina = 1;
+var INV_POR_PAG = 25;
+var ventaSeleccionada = null;
+var precioVentaActual = 0;
+var clientesCache = [];
+var cipTimer = null;
+var buscarTimer = null;
+var vlDatos = [], vlDatosFiltrados = [], vlPagina = 1, vlOrdenCampo = 'fecha_venta', vlOrdenAsc = false, vlFiltroActivo = 'todo';
+var VL_POR_PAG = 20;
 
-// ── ESTADO GLOBAL ────────────────────────────────────────
-let sesion = null;
-let catalogoData = [];
-let inventarioData = [];
-let invPagina = 1;
-const INV_POR_PAG = 25;
-let ventaSeleccionada = null;
-let ventaDevolucion = null;
-let precioVentaActual = 0;
-let cipTimer = null;
-let buscarTimer = null;
+// UTILIDADES
+function hoy() { return new Date().toISOString().split('T')[0]; }
+function fmtFecha(f) { if(!f)return'—'; var p=f.split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:f; }
+function fmt(n) { return '$'+parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function toast(msg,tipo) { var el=document.getElementById('toast'); el.textContent=msg; el.className='toast '+(tipo||'ok')+' show'; setTimeout(function(){el.className='toast';},4500); }
+function cerrarModal(id) { document.getElementById(id).classList.remove('show'); }
 
-// ── SPLASH / INICIO ───────────────────────────────────────
-async function iniciarSistema() {
-  // Mostrar login inmediatamente sin esperar al servidor
-  document.getElementById('splash').style.display = 'none';
-  document.getElementById('loginPage').style.display = 'flex';
-  // Mantener servidor despierto cada 14 minutos
-  setInterval(function() {
-    fetch(API + '/api/status').catch(function(){});
-  }, 840000);
+// LOGIN
+function doLogin() {
+  var user = document.getElementById('lu').value.trim().toLowerCase();
+  var pass = document.getElementById('lp').value;
+  var errEl = document.getElementById('loginErr');
+  if (USUARIOS[user] && USUARIOS[user].pass === pass) {
+    sesion = { user: user, nombre: USUARIOS[user].nombre };
+    errEl.style.display = 'none';
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('topbarUser').textContent = '👤 ' + sesion.nombre;
+    document.getElementById('v-fecha').value = hoy();
+    document.getElementById('p-fecha').value = hoy();
+    cargarDashboard();
+    cargarCatalogo();
+    cargarClientesCache();
+  } else {
+    errEl.style.display = 'block';
+    document.getElementById('lp').value = '';
+  }
 }
-iniciarSistema();
+function doLogout() {
+  sesion = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('lu').value = '';
+  document.getElementById('lp').value = '';
+}
+
+// NAVEGACIÓN
+function showPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  document.getElementById('panel-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+}
+
+// DASHBOARD
+async function cargarDashboard() {
+  try {
+    var res = await fetch(API+'/api/resumen');
+    var d = await res.json();
+    document.getElementById('d-ventas').textContent = d.total_ventas||0;
+    document.getElementById('d-monto').textContent = fmt(d.monto_ventas);
+    document.getElementById('d-creditos').textContent = d.creditos_activos||0;
+    document.getElementById('d-cxc-sub').textContent = fmt(d.saldo_cxc)+' pendiente';
+    document.getElementById('d-cxc').textContent = fmt(d.saldo_cxc);
+    document.getElementById('d-ganancia').textContent = fmt(d.monto_ventas);
+    // Alertas
+    var alertas = [];
+    if((d.creditos_activos||0)>0) alertas.push({txt:(d.creditos_activos)+' crédito(s) pendiente(s)',sub:'Saldo: '+fmt(d.saldo_cxc)});
+    document.getElementById('d-alertas').innerHTML = alertas.length===0
+      ? '<div style="text-align:center;padding:16px;color:var(--ok)">✅ Todo en orden</div>'
+      : alertas.map(function(a){return '<div class="alert-item"><div class="alert-icon">⏳</div><div><div>'+a.txt+'</div><div style="font-size:11px;color:var(--g500)">'+a.sub+'</div></div></div>';}).join('');
+  } catch(e) { console.error('Error dashboard:', e); }
+  // Últimas ventas
+  try {
+    var res2 = await fetch(API+'/api/ventas/todas');
+    var d2 = await res2.json();
+    var ultimas = (d2.ventas||[]).slice(0,5);
+    document.getElementById('d-ultimas').innerHTML = ultimas.length===0
+      ? '<p style="color:var(--g400);text-align:center;padding:16px">Sin ventas registradas</p>'
+      : ultimas.map(function(v){return '<div class="venta-item"><div><div class="venta-cliente">'+v.cliente+'</div><div class="venta-cip-small">'+v.codigo_cip+' · '+v.tipo_venta+'</div></div><div><div class="venta-monto">'+fmt(v.precio_final)+'</div><div class="venta-fecha-small">'+fmtFecha(v.fecha_venta)+'</div></div></div>';}).join('');
+  } catch(e){}
+}
+
+// CATÁLOGO
+async function cargarCatalogo() {
+  try {
+    var res = await fetch(API+'/api/catalogo');
+    inventarioData = await res.json();
+    catalogoData = inventarioData;
+    var enStock = catalogoData.filter(function(p){return p.unidades_compradas>0;}).length;
+    var agotados = catalogoData.filter(function(p){return p.unidades_compradas<=0;}).length;
+    document.getElementById('d-productos').textContent = catalogoData.length;
+    document.getElementById('d-enstock').textContent = enStock;
+    document.getElementById('d-agotados').textContent = agotados;
+    renderInventario();
+  } catch(e){}
+}
+
+async function cargarClientesCache() {
+  try {
+    var res = await fetch(API+'/api/clientes');
+    clientesCache = await res.json();
+  } catch(e){}
+}
+
+// INVENTARIO
+function renderInventario() {
+  var q = (document.getElementById('inv-q')?document.getElementById('inv-q').value:'').trim().toUpperCase();
+  var datos = inventarioData;
+  if(q) datos = datos.filter(function(p){return(p.codigo_cip||'').toUpperCase().indexOf(q)>=0||(p.descripcion||'').toUpperCase().indexOf(q)>=0||(p.material||'').toUpperCase().indexOf(q)>=0;});
+  var total = datos.length, tp = Math.max(1,Math.ceil(total/INV_POR_PAG));
+  if(invPagina>tp)invPagina=1;
+  var sl = datos.slice((invPagina-1)*INV_POR_PAG, invPagina*INV_POR_PAG);
+  var tb = document.getElementById('inv-tbody');
+  if(tb) tb.innerHTML = sl.map(function(p){
+    var st=p.unidades_compradas||0;
+    return '<tr><td><code>'+p.codigo_cip+'</code></td><td>'+( p.descripcion||'—')+'</td><td>'+(p.material||'—')+'</td><td>'+(p.talla||'—')+'</td><td>'+(p.proveedor||'—')+'</td><td><span class="badge '+(st>0?'badge-ok':'badge-err')+'">'+(st>0?'✓ '+st:'Agotado')+'</span></td></tr>';
+  }).join('')||'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--g400)">Sin resultados</td></tr>';
+  var info=document.getElementById('inv-info'); if(info)info.textContent=total+' productos · Pág '+invPagina+' de '+tp;
+  var pags=document.getElementById('inv-pags');
+  if(pags){var h='<button class="pag-btn" onclick="invIrPag('+(invPagina-1)+')" '+(invPagina<=1?'disabled':'')+'>‹</button>';for(var p2=Math.max(1,invPagina-2);p2<=Math.min(tp,invPagina+2);p2++)h+='<button class="pag-btn '+(p2===invPagina?'active':'')+'" onclick="invIrPag('+p2+')">'+p2+'</button>';h+='<button class="pag-btn" onclick="invIrPag('+(invPagina+1)+')" '+(invPagina>=tp?'disabled':'')+'>›</button>';pags.innerHTML=h;}
+}
+function invIrPag(p){invPagina=p;renderInventario();}
+function filtrarInventario(){invPagina=1;renderInventario();}
+
+// LISTA VENTAS
+async function cargarListaVentas() {
+  try { var res=await fetch(API+'/api/ventas/todas'); var d=await res.json(); vlDatos=d.ventas||[]; vlFiltrar(); } catch(e){}
+}
+function vlFiltroRapido(tipo,btn){vlFiltroActivo=tipo;document.querySelectorAll('.filtro-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');vlFiltrar();}
+function vlFiltrar(){
+  var q=(document.getElementById('vl-buscar')?document.getElementById('vl-buscar').value:'').trim().toUpperCase();
+  var desde=document.getElementById('vl-desde')?document.getElementById('vl-desde').value:'';
+  var hasta=document.getElementById('vl-hasta')?document.getElementById('vl-hasta').value:'';
+  var tipo=document.getElementById('vl-tipo')?document.getElementById('vl-tipo').value:'';
+  var hoyStr=hoy(),semStr=new Date(Date.now()-7*86400000).toISOString().split('T')[0],mesStr=hoyStr.substring(0,7);
+  vlDatosFiltrados=vlDatos.filter(function(v){
+    if(vlFiltroActivo==='hoy'&&v.fecha_venta!==hoyStr)return false;
+    if(vlFiltroActivo==='semana'&&v.fecha_venta<semStr)return false;
+    if(vlFiltroActivo==='mes'&&!v.fecha_venta.startsWith(mesStr))return false;
+    if(vlFiltroActivo==='contado'&&v.tipo_venta!=='Contado')return false;
+    if(vlFiltroActivo==='credito'&&v.tipo_venta!=='Crédito')return false;
+    if(vlFiltroActivo==='pendiente'&&v.saldo<=0)return false;
+    if(desde&&v.fecha_venta<desde)return false;
+    if(hasta&&v.fecha_venta>hasta)return false;
+    if(tipo&&v.tipo_venta!==tipo)return false;
+    if(q){var m=(v.cliente||'').toUpperCase().indexOf(q)>=0||(v.codigo_cip||'').toUpperCase().indexOf(q)>=0||(v.id_venta||'').toUpperCase().indexOf(q)>=0;if(!m)return false;}
+    return true;
+  });
+  vlDatosFiltrados.sort(function(a,b){var va=a[vlOrdenCampo]||'',vb=b[vlOrdenCampo]||'';if(typeof va==='number')return vlOrdenAsc?va-vb:vb-va;return vlOrdenAsc?va.localeCompare(vb):vb.localeCompare(va);});
+  vlPagina=1; vlActualizarResumen(); vlRender();
+}
+function vlOrdenar(c){if(vlOrdenCampo===c){vlOrdenAsc=!vlOrdenAsc;}else{vlOrdenCampo=c;vlOrdenAsc=false;}vlFiltrar();}
+function vlActualizarResumen(){
+  var t=vlDatosFiltrados.length,m=vlDatosFiltrados.reduce(function(s,v){return s+v.precio_final;},0);
+  var co=vlDatosFiltrados.filter(function(v){return v.tipo_venta==='Contado';}).length;
+  var cr=vlDatosFiltrados.filter(function(v){return v.tipo_venta==='Crédito';}).length;
+  var s=vlDatosFiltrados.reduce(function(s,v){return s+(v.saldo>0?v.saldo:0);},0);
+  if(document.getElementById('vl-total'))document.getElementById('vl-total').textContent=t;
+  if(document.getElementById('vl-monto'))document.getElementById('vl-monto').textContent=fmt(m);
+  if(document.getElementById('vl-contado-n'))document.getElementById('vl-contado-n').textContent=co;
+  if(document.getElementById('vl-credito-n'))document.getElementById('vl-credito-n').textContent=cr;
+  if(document.getElementById('vl-saldo'))document.getElementById('vl-saldo').textContent=fmt(s);
+}
+function vlRender(){
+  var total=vlDatosFiltrados.length,tp=Math.max(1,Math.ceil(total/VL_POR_PAG));
+  if(vlPagina>tp)vlPagina=tp;
+  var sl=vlDatosFiltrados.slice((vlPagina-1)*VL_POR_PAG,vlPagina*VL_POR_PAG);
+  var cards=document.getElementById('vl-cards');
+  if(cards)cards.innerHTML=sl.length?sl.map(function(v){return'<div class="vcard '+(v.tipo_venta||'').toLowerCase()+'"><div class="vcard-top"><div><div class="vcard-id">'+v.id_venta+'</div><div class="vcard-cliente">'+v.cliente+'</div><div class="vcard-cip">'+v.codigo_cip+'</div></div><div class="vcard-fecha">'+fmtFecha(v.fecha_venta)+'</div></div><div class="vcard-bottom"><div><div class="vcard-precio">'+fmt(v.precio_final)+'</div><span class="badge '+(v.tipo_venta==='Contado'?'badge-ok':'badge-warn')+'">'+v.tipo_venta+'</span></div><div class="'+(v.saldo>0?'vcard-saldo-pend':'vcard-saldo-ok')+'">'+(v.saldo>0?'Saldo: '+fmt(v.saldo):'✓ Pagado')+'</div></div></div>';}).join(''):'<div style="text-align:center;padding:30px;color:var(--g400)">Sin resultados</div>';
+  var tb=document.getElementById('vl-tbody');
+  if(tb)tb.innerHTML=sl.length?sl.map(function(v){return'<tr><td style="white-space:nowrap"><code>'+v.id_venta+'</code></td><td style="white-space:nowrap">'+fmtFecha(v.fecha_venta)+'</td><td><strong>'+v.cliente+'</strong></td><td style="white-space:nowrap"><code>'+v.codigo_cip+'</code></td><td style="font-size:11px;color:var(--g500)">'+(v.descripcion||'—')+'</td><td><strong>'+fmt(v.precio_final)+'</strong></td><td style="color:var(--g500)">'+(v.ajuste_precio>0?'— '+fmt(v.ajuste_precio):'—')+'</td><td>'+(v.metodo_pago||'—')+'</td><td><span class="badge '+(v.tipo_venta==='Contado'?'badge-ok':'badge-warn')+'">'+v.tipo_venta+'</span></td><td>'+(v.saldo>0?'<strong style="color:var(--warn)">'+fmt(v.saldo)+'</strong>':'<span style="color:var(--ok)">✓ Pagado</span>')+'</td><td><span class="badge badge-ok">'+(v.estado||'Activa')+'</span></td></tr>';}).join(''):'<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--g400)">Sin resultados</td></tr>';
+  var info=document.getElementById('vl-info'); if(info)info.textContent=total+' ventas · Página '+vlPagina+' de '+tp;
+  var pags=document.getElementById('vl-pags');
+  if(pags){var h='<button class="pag-btn" onclick="vlIrPag('+(vlPagina-1)+')" '+(vlPagina<=1?'disabled':'')+'>‹</button>';for(var p2=Math.max(1,vlPagina-2);p2<=Math.min(tp,vlPagina+2);p2++)h+='<button class="pag-btn '+(p2===vlPagina?'active':'')+'" onclick="vlIrPag('+p2+')">'+p2+'</button>';h+='<button class="pag-btn" onclick="vlIrPag('+(vlPagina+1)+')" '+(vlPagina>=tp?'disabled':'')+'>›</button>';pags.innerHTML=h;}
+}
+function vlIrPag(p){vlPagina=p;vlRender();window.scrollTo({top:0,behavior:'smooth'});}
+function vlLimpiar(){['vl-buscar','vl-desde','vl-hasta'].forEach(function(id){if(document.getElementById(id))document.getElementById(id).value='';});if(document.getElementById('vl-tipo'))document.getElementById('vl-tipo').value='';vlFiltroActivo='todo';document.querySelectorAll('.filtro-btn').forEach(function(b,i){b.classList.toggle('active',i===0);});vlFiltrar();}
+
+// NUEVA VENTA
+function prepararNuevaVenta() { if(catalogoData.length===0)cargarCatalogo(); if(clientesCache.length===0)cargarClientesCache(); }
+function onCIPInput() {
+  var val=document.getElementById('v-cip').value.trim().toUpperCase();
+  var sugs=document.getElementById('v-cip-sugs');
+  if(val.length>=2&&catalogoData.length>0){
+    var matches=catalogoData.filter(function(p){return p.codigo_cip.toUpperCase().indexOf(val)>=0||(p.descripcion||'').toUpperCase().indexOf(val)>=0||(p.material||'').toUpperCase().indexOf(val)>=0;}).slice(0,8);
+    if(matches.length){
+      sugs.style.display='block';
+      sugs.innerHTML=matches.map(function(p){var st=p.unidades_compradas>0?'<span style="color:var(--ok);font-size:11px">✓ '+p.unidades_compradas+' en stock</span>':'<span style="color:var(--err);font-size:11px">✗ Sin stock</span>';return'<div onclick="selCIP(\''+p.codigo_cip+'\')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--g100);display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background=\'var(--g50)\'" onmouseout="this.style.background=\'\'"><div><div style="font-weight:700;font-size:13px">'+p.codigo_cip+'</div><div style="font-size:11px;color:var(--g500)">'+(p.descripcion||'')+' · '+(p.material||'')+'</div></div>'+st+'</div>';}).join('');
+    } else sugs.style.display='none';
+  } else sugs.style.display='none';
+  clearTimeout(cipTimer); cipTimer=setTimeout(calcularPrecio,700);
+}
+function selCIP(cip){document.getElementById('v-cip').value=cip;document.getElementById('v-cip-sugs').style.display='none';calcularPrecio();}
+async function calcularPrecio(){
+  var cip=document.getElementById('v-cip').value.trim(), fecha=document.getElementById('v-fecha').value;
+  if(!cip||!fecha)return;
+  try{
+    var pr=await fetch(API+'/api/precio/'+encodeURIComponent(cip)+'?fecha='+fecha);
+    var sr=await fetch(API+'/api/stock/'+encodeURIComponent(cip));
+    var precio=await pr.json(), stock=await sr.json();
+    if(precio.precio_venta){
+      precioVentaActual=precio.precio_venta;
+      var prod=catalogoData.find(function(p){return p.codigo_cip===cip;});
+      document.getElementById('vp-desc').textContent=prod?(prod.descripcion||'—'):'—';
+      document.getElementById('vp-costo').textContent=fmt(precio.costo_landed);
+      document.getElementById('vp-factor').textContent=precio.factor_venta+'x';
+      document.getElementById('vp-precio').textContent=fmt(precio.precio_venta);
+      actualizarFinal();
+      document.getElementById('v-precio-box').classList.add('show');
+      var st=stock.stock_disponible;
+      document.getElementById('vp-stock').innerHTML='<span class="stock-chip '+(st>0?'ok':'err')+'">'+(st>0?'✓ '+st+' unidad(es) disponible(s)':'✗ Sin stock — no se puede vender')+'</span>';
+    } else {document.getElementById('v-precio-box').classList.remove('show');precioVentaActual=0;}
+  }catch(e){}
+}
+function actualizarFinal(){var aj=parseFloat(document.getElementById('v-ajuste').value)||0;document.getElementById('vp-ajuste').textContent='— '+fmt(aj);document.getElementById('vp-final').textContent=fmt(precioVentaActual-aj);}
+function onClienteInput(){
+  var val=document.getElementById('v-cliente').value.trim();
+  var sugs=document.getElementById('v-cli-sugs'), nuevo=document.getElementById('v-cli-nuevo');
+  if(val.length>=2){
+    var m=clientesCache.filter(function(c){return(c.nombre||'').toUpperCase().indexOf(val.toUpperCase())>=0;}).slice(0,8);
+    if(m.length){sugs.style.display='block';sugs.innerHTML=m.map(function(c){return'<div onclick="selCliente(\''+c.nombre.replace(/'/g,"\\'")+'\')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--g100);font-size:13px" onmouseover="this.style.background=\'var(--g50)\'" onmouseout="this.style.background=\'\'">'+c.nombre+'</div>';}).join('');nuevo.style.display='none';}
+    else{sugs.style.display='none';nuevo.style.display='block';nuevo.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--info)">Cliente nuevo: <strong>'+val+'</strong></span><button class="btn btn-sm" style="background:var(--info);color:white;padding:6px 12px;font-size:12px" onclick="abrirNuevoCliente(\''+val.replace(/'/g,"\\'")+'\')">+ Registrar</button></div>';}
+  }else{sugs.style.display='none';nuevo.style.display='none';}
+}
+function selCliente(n){document.getElementById('v-cliente').value=n;document.getElementById('v-cli-sugs').style.display='none';document.getElementById('v-cli-nuevo').style.display='none';}
+function abrirNuevoCliente(n){document.getElementById('nc-nombre').value=n||'';document.getElementById('nc-telefono').value='';document.getElementById('nc-email').value='';document.getElementById('modalNuevoCliente').classList.add('show');}
+async function guardarNuevoCliente(){
+  var nombre=document.getElementById('nc-nombre').value.trim();
+  if(!nombre){toast('El nombre es obligatorio','er');return;}
+  try{var res=await fetch(API+'/api/clientes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:nombre,telefono:document.getElementById('nc-telefono').value.trim(),email:document.getElementById('nc-email').value.trim()})});var d=await res.json();if(res.ok){clientesCache.push({nombre:nombre});clientesCache.sort(function(a,b){return a.nombre.localeCompare(b.nombre);});document.getElementById('v-cliente').value=nombre;document.getElementById('v-cli-nuevo').style.display='none';cerrarModal('modalNuevoCliente');toast('✓ Cliente registrado','ok');}else toast(d.detail||'Error','er');}catch(e){toast('Sin conexión','er');}
+}
+function abrirConfirmVenta(){
+  var cip=document.getElementById('v-cip').value.trim(), fecha=document.getElementById('v-fecha').value, cliente=document.getElementById('v-cliente').value.trim(), metodo=document.getElementById('v-metodo').value, tipo=document.getElementById('v-tipo').value;
+  ['v-cip','v-fecha','v-cliente','v-metodo','v-tipo'].forEach(function(id){document.getElementById(id).classList.remove('err');});
+  var ok=true;
+  if(!cip){document.getElementById('v-cip').classList.add('err');ok=false;}
+  if(!fecha){document.getElementById('v-fecha').classList.add('err');ok=false;}
+  if(!cliente){document.getElementById('v-cliente').classList.add('err');ok=false;}
+  if(!metodo){document.getElementById('v-metodo').classList.add('err');ok=false;}
+  if(!tipo){document.getElementById('v-tipo').classList.add('err');ok=false;}
+  if(!ok){toast('Completa todos los campos obligatorios','er');return;}
+  if(precioVentaActual<=0){toast('Selecciona un CIP válido primero','er');return;}
+  var aj=parseFloat(document.getElementById('v-ajuste').value)||0, pf=precioVentaActual-aj;
+  document.getElementById('conf-resumen').innerHTML='<div style="display:grid;gap:8px"><div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">CIP</span><strong>'+cip+'</strong></div><div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">Cliente</span><strong>'+cliente+'</strong></div><div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">Fecha</span><strong>'+fmtFecha(fecha)+'</strong></div><div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">Precio Venta</span><span>'+fmt(precioVentaActual)+'</span></div>'+(aj>0?'<div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">Ajuste</span><span style="color:var(--warn)">— '+fmt(aj)+'</span></div>':'')+'<div style="display:flex;justify-content:space-between;border-top:1px solid var(--g200);padding-top:8px;margin-top:4px"><span><strong>Precio Final</strong></span><strong style="font-size:16px;color:var(--navy)">'+fmt(pf)+'</strong></div><div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">Método</span><span>'+metodo+'</span></div><div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">Tipo</span><span class="badge '+(tipo==='Contado'?'badge-ok':'badge-warn')+'">'+tipo+'</span></div><div style="display:flex;justify-content:space-between"><span style="color:var(--g500)">Vendedor</span><span>'+sesion.nombre+'</span></div></div>';
+  document.getElementById('modalConfVenta').classList.add('show');
+}
+async function ejecutarRegistroVenta(){
+  var btn=document.getElementById('btn-conf-venta'); btn.disabled=true; btn.textContent='Registrando...';
+  try{
+    var res=await fetch(API+'/api/ventas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({codigo_cip:document.getElementById('v-cip').value.trim(),fecha_venta:document.getElementById('v-fecha').value,cliente:document.getElementById('v-cliente').value.trim(),ajuste_precio:parseFloat(document.getElementById('v-ajuste').value)||0,metodo_pago:document.getElementById('v-metodo').value,tipo_venta:document.getElementById('v-tipo').value,vendedor:sesion.nombre,observaciones:document.getElementById('v-obs').value.trim()})});
+    var d=await res.json();
+    if(res.ok){cerrarModal('modalConfVenta');toast('✓ '+d.mensaje,'ok');['v-cip','v-cliente','v-obs'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('v-ajuste').value='0';document.getElementById('v-metodo').value='';document.getElementById('v-tipo').value='';document.getElementById('v-precio-box').classList.remove('show');document.getElementById('v-fecha').value=hoy();precioVentaActual=0;cargarDashboard();}
+    else{cerrarModal('modalConfVenta');toast(d.detail||'Error al registrar','er');}
+  }catch(e){toast('Sin conexión','er');}
+  btn.disabled=false; btn.textContent='✓ Confirmar';
+}
+
+// PAGOS
+async function buscarParaPago(){
+  clearTimeout(buscarTimer);
+  var q=document.getElementById('p-buscar').value.trim();
+  if(q.length<2){document.getElementById('p-resultados').innerHTML='';document.getElementById('saldo-box').classList.remove('show');return;}
+  buscarTimer=setTimeout(async function(){
+    try{var res=await fetch(API+'/api/ventas/buscar?q='+encodeURIComponent(q));var d=await res.json();var cr=(d.resultados||[]).filter(function(v){return v.tipo_venta==='Crédito';});var cont=document.getElementById('p-resultados');
+    if(!cr.length){cont.innerHTML='<p style="color:var(--g500);font-size:13px;padding:12px 0">Sin ventas a crédito encontradas.</p>';return;}
+    window._pRes=cr;cont.innerHTML=cr.map(function(v,i){return'<div class="result-card" onclick="selPago('+i+')"><div class="result-cip">'+v.codigo_cip+' · '+v.id_venta+'</div><div class="result-name">'+v.cliente+'</div><div class="result-row"><span>Precio Final</span><span class="rv">'+fmt(v.precio_final)+'</span></div><div class="result-row"><span>Total Pagado</span><span class="rv">'+fmt(v.total_pagado)+'</span></div><span class="badge '+(v.pagado_completo?'badge-ok':'badge-warn')+'">'+(v.pagado_completo?'✓ Pagado':'Saldo: '+fmt(v.saldo))+'</span></div>';}).join('');}catch(e){}
+  },400);
+}
+function selPago(i){document.querySelectorAll('#p-resultados .result-card').forEach(function(c){c.classList.remove('sel');});document.querySelectorAll('#p-resultados .result-card')[i].classList.add('sel');ventaSeleccionada=window._pRes[i];var v=ventaSeleccionada;document.getElementById('saldo-resumen').innerHTML='<div class="saldo-row"><span style="color:var(--g500)">Venta</span><span>'+v.id_venta+'</span></div><div class="saldo-row"><span style="color:var(--g500)">Cliente</span><span><strong>'+v.cliente+'</strong></span></div><div class="saldo-row"><span style="color:var(--g500)">P.Final</span><span>'+fmt(v.precio_final)+'</span></div><div class="saldo-row"><span style="color:var(--g500)">Pagado</span><span>'+fmt(v.total_pagado)+'</span></div><div class="saldo-row saldo-total"><span>Saldo Pendiente</span><span style="color:'+(v.saldo>0?'var(--warn)':'var(--ok)')+'">'+fmt(v.saldo)+'</span></div>';document.getElementById('p-monto').value='';document.getElementById('p-notas').value='';document.getElementById('p-fecha').value=hoy();document.getElementById('btn-pago').disabled=v.pagado_completo;document.getElementById('saldo-box').classList.add('show');setTimeout(function(){document.getElementById('saldo-box').scrollIntoView({behavior:'smooth',block:'start'});},100);}
+async function ejecutarPago(){
+  if(!ventaSeleccionada){toast('Selecciona una venta primero','er');return;}
+  var fecha=document.getElementById('p-fecha').value,monto=parseFloat(document.getElementById('p-monto').value),metodo=document.getElementById('p-metodo').value;
+  if(!fecha||!monto||!metodo){toast('Completa todos los campos','er');return;}
+  var btn=document.getElementById('btn-pago');btn.disabled=true;btn.textContent='Registrando...';
+  try{var res=await fetch(API+'/api/pagos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id_venta:ventaSeleccionada.id_venta,codigo_cip:ventaSeleccionada.codigo_cip,cliente:ventaSeleccionada.cliente,fecha_pago:fecha,monto:monto,metodo_pago:metodo,vendedor:sesion.nombre,notas:document.getElementById('p-notas').value.trim()})});var d=await res.json();
+  if(res.ok){if(d.pagado_completo){document.getElementById('celebNombre').textContent=ventaSeleccionada.cliente;document.getElementById('modalCeleb').classList.add('show');}else toast('✓ Pago registrado. Saldo: '+fmt(d.nuevo_saldo),'ok');ventaSeleccionada=null;document.getElementById('saldo-box').classList.remove('show');document.getElementById('p-buscar').value='';document.getElementById('p-resultados').innerHTML='';cargarDashboard();}else toast(d.detail||'Error','er');}catch(e){toast('Sin conexión','er');}
+  btn.disabled=false;btn.textContent='Registrar Pago';
+}
+
+// CXC
+async function cargarCXC(){
+  try{var res=await fetch(API+'/api/ventas/todas');var d=await res.json();var cr=(d.ventas||[]).filter(function(v){return v.tipo_venta==='Crédito';}).sort(function(a,b){return a.fecha_venta<b.fecha_venta?1:-1;});var tb=document.getElementById('cxc-tbody');if(tb)tb.innerHTML=cr.map(function(v){return'<tr><td><code>'+v.id_venta+'</code></td><td>'+fmtFecha(v.fecha_venta)+'</td><td>'+v.cliente+'</td><td><code>'+v.codigo_cip+'</code></td><td>'+fmt(v.precio_final)+'</td><td>'+fmt(v.total_pagado)+'</td><td><strong>'+fmt(v.saldo)+'</strong></td><td><span class="badge '+(v.pagado_completo?'badge-ok':'badge-warn')+'">'+(v.pagado_completo?'Pagado':'Pendiente')+'</span></td></tr>';}).join('')||'<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--g400)">Sin créditos</td></tr>';}catch(e){}
+}
+
+// REPORTES
+async function generarReporte(){
+  var desde=document.getElementById('r-desde').value, hasta=document.getElementById('r-hasta').value;
+  if(!desde||!hasta){toast('Selecciona el rango de fechas','er');return;}
+  document.getElementById('reporte-resultado').innerHTML='<div style="text-align:center;padding:30px;color:var(--g400)">Generando reporte...</div>';
+  try{
+    var res=await fetch(API+'/api/ventas/todas');var d=await res.json();
+    var todas=(d.ventas||[]).filter(function(v){return v.fecha_venta>=desde&&v.fecha_venta<=hasta;});
+    var totalIngresos=todas.reduce(function(s,v){return s+v.precio_final;},0);
+    var contado=todas.filter(function(v){return v.tipo_venta==='Contado';});
+    var credito=todas.filter(function(v){return v.tipo_venta==='Crédito';});
+    var porTipo={};todas.forEach(function(v){var cod=v.codigo_cip||'',tipo='Otros';if(cod.indexOf('-AR-')>=0)tipo='Aretes';else if(cod.indexOf('-AN-')>=0)tipo='Anillos';else if(cod.indexOf('-BR-')>=0)tipo='Brazaletes';else if(cod.indexOf('-CO-')>=0)tipo='Collares';else if(cod.indexOf('-DI-')>=0)tipo='Dijes';else if(cod.indexOf('-PU-')>=0)tipo='Pulseras';if(!porTipo[tipo])porTipo[tipo]={n:0,total:0};porTipo[tipo].n++;porTipo[tipo].total+=v.precio_final;});
+    var porCliente={};todas.forEach(function(v){if(!porCliente[v.cliente])porCliente[v.cliente]={n:0,total:0};porCliente[v.cliente].n++;porCliente[v.cliente].total+=v.precio_final;});
+    var top5=Object.entries(porCliente).sort(function(a,b){return b[1].total-a[1].total;}).slice(0,5);
+    document.getElementById('reporte-resultado').innerHTML=
+      '<div class="card"><div class="card-title">📊 Ventas del Período ('+fmtFecha(desde)+' al '+fmtFecha(hasta)+')</div><div class="kpi-grid"><div class="kpi k-gold"><div class="kpi-val">'+todas.length+'</div><div class="kpi-label">N° Ventas</div></div><div class="kpi k-ok"><div class="kpi-val">'+fmt(totalIngresos)+'</div><div class="kpi-label">Total Ingresos</div></div><div class="kpi k-info"><div class="kpi-val">'+fmt(totalIngresos/(todas.length||1))+'</div><div class="kpi-label">Ticket Promedio</div></div><div class="kpi k-warn"><div class="kpi-val">'+credito.length+'</div><div class="kpi-label">Ventas a Crédito</div></div></div></div>'+
+      '<div class="card"><div class="card-title">💼 Desglose de Cartera</div><div class="table-wrap"><table><thead><tr><th>Tipo</th><th>N° Ventas</th><th>Monto</th><th>%</th></tr></thead><tbody><tr><td>Contado</td><td>'+contado.length+'</td><td>'+fmt(contado.reduce(function(s,v){return s+v.precio_final;},0))+'</td><td>'+(totalIngresos>0?(contado.reduce(function(s,v){return s+v.precio_final;},0)/totalIngresos*100).toFixed(1):0)+'%</td></tr><tr><td>Crédito</td><td>'+credito.length+'</td><td>'+fmt(credito.reduce(function(s,v){return s+v.precio_final;},0))+'</td><td>'+(totalIngresos>0?(credito.reduce(function(s,v){return s+v.precio_final;},0)/totalIngresos*100).toFixed(1):0)+'%</td></tr><tr style="font-weight:700"><td>TOTAL</td><td>'+todas.length+'</td><td>'+fmt(totalIngresos)+'</td><td>100%</td></tr></tbody></table></div></div>'+
+      '<div class="card"><div class="card-title">💍 Por Tipo de Joya</div><div class="table-wrap"><table><thead><tr><th>Tipo</th><th>N° Piezas</th><th>Monto</th><th>%</th></tr></thead><tbody>'+Object.entries(porTipo).sort(function(a,b){return b[1].total-a[1].total;}).map(function(e){return'<tr><td>'+e[0]+'</td><td>'+e[1].n+'</td><td>'+fmt(e[1].total)+'</td><td>'+(totalIngresos>0?(e[1].total/totalIngresos*100).toFixed(1):0)+'%</td></tr>';}).join('')+'<tr style="font-weight:700"><td>TOTAL</td><td>'+todas.length+'</td><td>'+fmt(totalIngresos)+'</td><td>100%</td></tr></tbody></table></div></div>'+
+      '<div class="card"><div class="card-title">👥 Top 5 Clientes</div><div class="table-wrap"><table><thead><tr><th>#</th><th>Cliente</th><th>N° Piezas</th><th>Monto Total</th></tr></thead><tbody>'+top5.map(function(e,i){return'<tr><td>'+(i+1)+'</td><td>'+e[0]+'</td><td>'+e[1].n+'</td><td>'+fmt(e[1].total)+'</td></tr>';}).join('')+'</tbody></table></div></div>'+
+      '<div class="card"><div class="card-title">📋 Detalle Completo</div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Fecha</th><th>Cliente</th><th>CIP</th><th>P.Final</th><th>Tipo</th></tr></thead><tbody>'+todas.sort(function(a,b){return a.fecha_venta<b.fecha_venta?1:-1;}).map(function(v){return'<tr><td><code>'+v.id_venta+'</code></td><td>'+fmtFecha(v.fecha_venta)+'</td><td>'+v.cliente+'</td><td><code>'+v.codigo_cip+'</code></td><td>'+fmt(v.precio_final)+'</td><td><span class="badge '+(v.tipo_venta==='Contado'?'badge-ok':'badge-warn')+'">'+v.tipo_venta+'</span></td></tr>';}).join('')+'</tbody></table></div></div>';
+  }catch(e){document.getElementById('reporte-resultado').innerHTML='<div style="color:var(--err);padding:20px">Error al generar reporte.</div>';}
+}
+
+// INICIAR
+document.getElementById('loginPage').style.display = 'flex';
+setInterval(function(){fetch(API+'/api/status').catch(function(){});},840000);
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.querySelectorAll('.modal-bg.show').forEach(function(m){m.classList.remove('show');});if(document.getElementById('v-cip-sugs'))document.getElementById('v-cip-sugs').style.display='none';if(document.getElementById('v-cli-sugs'))document.getElementById('v-cli-sugs').style.display='none';}});
 </script>
 </body>
 </html>
