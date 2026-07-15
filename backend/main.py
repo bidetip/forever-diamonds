@@ -252,6 +252,23 @@ def resumen():
         "saldo_cxc": round(cxc[1], 2)
     }
 
+@app.get("/api/stock/agotados")
+def stock_agotados():
+    conn = database.get_conn()
+    cur = conn.cursor()
+    stocks = cur.execute("""
+        SELECT c.codigo_cip, MAX(c.descripcion) as descripcion,
+            COALESCE(SUM(c.cantidad),0) - COALESCE(v.vendidas,0) + COALESCE(d.devueltas,0) as stock_real
+        FROM compras c
+        LEFT JOIN (SELECT codigo_cip, COUNT(*) as vendidas FROM ventas WHERE estado='Activa' GROUP BY codigo_cip) v ON c.codigo_cip = v.codigo_cip
+        LEFT JOIN (SELECT codigo_cip, COUNT(*) as devueltas FROM devoluciones WHERE estado='Procesada' GROUP BY codigo_cip) d ON c.codigo_cip = d.codigo_cip
+        GROUP BY c.codigo_cip
+        HAVING stock_real <= 0
+        ORDER BY c.codigo_cip
+    """).fetchall()
+    conn.close()
+    return {"agotados": [dict(r) for r in stocks], "total": len(stocks)}
+
 @app.get("/api/estado-resultados")
 def estado_resultados(desde: Optional[str] = None, hasta: Optional[str] = None):
     conn = database.get_conn()

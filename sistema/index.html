@@ -233,6 +233,11 @@ code{font-family:'Courier New',monospace;font-size:11px;background:var(--g100);p
         <div class="kpi k-err"><div class="kpi-icon">⚠️</div><div class="kpi-val" id="d-agotados">—</div><div class="kpi-label">Agotados</div></div>
         <div class="kpi k-gold"><div class="kpi-icon">💎</div><div class="kpi-val" id="d-ganancia">—</div><div class="kpi-label">Ingresos Acumulados</div></div>
       </div>
+      <div class="card"><div class="card-title">📈 Ventas por Mes</div>
+        <div id="d-chart-bars" style="display:flex;align-items:flex-end;gap:6px;height:170px;padding:0 4px;border-bottom:2px solid var(--g200)"></div>
+        <div id="d-chart-labels" style="display:flex;gap:6px;padding:4px 4px 0"></div>
+      </div>
+      <div class="card"><div class="card-title">🏆 Top 5 Clientes</div><div id="d-top5">Cargando...</div></div>
       <div class="card"><div class="card-title">🕐 Últimas Ventas</div><div id="d-ultimas">Cargando...</div></div>
       <div class="card"><div class="card-title">🚨 Alertas</div><div id="d-alertas">Verificando...</div></div>
     </div>
@@ -420,6 +425,7 @@ function mostrarFechaPeruana(input, divId) {
 }
 function fmtFecha(f) { if(!f)return'—'; var p=f.split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:f; }
 function fmt(n) { return '$'+parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtCorto(n) { n=parseFloat(n||0); if(n>=1000) return '$'+(n/1000).toFixed(1)+'K'; return '$'+n.toFixed(0); }
 var toastTimer=null;
 function toast(msg,tipo,dur) { var el=document.getElementById('toast'); el.textContent=msg; el.className='toast '+(tipo||'ok')+' show'; clearTimeout(toastTimer); toastTimer=setTimeout(function(){el.className='toast';},dur||4500); }
 function cerrarModal(id) { document.getElementById(id).classList.remove('show'); }
@@ -481,17 +487,18 @@ function showPanel(name, el) {
 }
 
 // DASHBOARD
+var MESES_CORTOS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 async function cargarDashboard() {
+  var d = {};
   try {
     var res = await apiFetch(API+'/api/resumen');
-    var d = await res.json();
+    d = await res.json();
     document.getElementById('d-ventas').textContent = d.total_ventas||0;
     document.getElementById('d-monto').textContent = fmt(d.monto_ventas);
     document.getElementById('d-creditos').textContent = d.creditos_activos||0;
     document.getElementById('d-cxc-sub').textContent = fmt(d.saldo_cxc)+' pendiente';
     document.getElementById('d-cxc').textContent = fmt(d.saldo_cxc);
     document.getElementById('d-ganancia').textContent = fmt(d.monto_ventas);
-    // Cargar stock real
     try {
       var sr = await apiFetch(API+'/api/stock/resumen');
       var st = await sr.json();
@@ -499,22 +506,73 @@ async function cargarDashboard() {
       document.getElementById('d-enstock').textContent = st.con_stock;
       document.getElementById('d-agotados').textContent = st.agotados;
     } catch(e2){}
-    // Alertas
-    var alertas = [];
-    if((d.creditos_activos||0)>0) alertas.push({txt:(d.creditos_activos)+' crédito(s) pendiente(s)',sub:'Saldo: '+fmt(d.saldo_cxc)});
-    document.getElementById('d-alertas').innerHTML = alertas.length===0
-      ? '<div style="text-align:center;padding:16px;color:var(--ok)">✅ Todo en orden</div>'
-      : alertas.map(function(a){return '<div class="alert-item"><div class="alert-icon">⏳</div><div><div>'+a.txt+'</div><div style="font-size:11px;color:var(--g500)">'+a.sub+'</div></div></div>';}).join('');
   } catch(e) { console.error('Error dashboard:', e); }
-  // Últimas ventas
+
+  // Ventas (usadas para últimas ventas, gráfico mensual y top 5 clientes)
+  var todas = [];
   try {
     var res2 = await apiFetch(API+'/api/ventas/todas');
     var d2 = await res2.json();
-    var ultimas = (d2.ventas||[]).slice(0,5);
-    document.getElementById('d-ultimas').innerHTML = ultimas.length===0
-      ? '<p style="color:var(--g400);text-align:center;padding:16px">Sin ventas registradas</p>'
-      : ultimas.map(function(v){return '<div class="venta-item"><div><div class="venta-cliente">'+v.cliente+'</div><div class="venta-cip-small">'+v.codigo_cip+' · '+v.tipo_venta+'</div></div><div><div class="venta-monto">'+fmt(v.precio_final)+'</div><div class="venta-fecha-small">'+fmtFecha(v.fecha_venta)+'</div></div></div>';}).join('');
+    todas = d2.ventas||[];
   } catch(e){}
+
+  // Últimas ventas
+  var ultimas = todas.slice(0,5);
+  document.getElementById('d-ultimas').innerHTML = ultimas.length===0
+    ? '<p style="color:var(--g400);text-align:center;padding:16px">Sin ventas registradas</p>'
+    : ultimas.map(function(v){return '<div class="venta-item"><div><div class="venta-cliente">'+v.cliente+'</div><div class="venta-cip-small">'+v.codigo_cip+' · '+v.tipo_venta+'</div></div><div><div class="venta-monto">'+fmt(v.precio_final)+'</div><div class="venta-fecha-small">'+fmtFecha(v.fecha_venta)+'</div></div></div>';}).join('');
+
+  // Gráfico de ventas por mes (últimos 6 meses con datos)
+  var porMes = {};
+  todas.forEach(function(v){ var m=(v.fecha_venta||'').slice(0,7); if(!m) return; porMes[m]=(porMes[m]||0)+v.precio_final; });
+  var meses = Object.keys(porMes).sort().slice(-6);
+  if (meses.length===0) {
+    document.getElementById('d-chart-bars').innerHTML = '<div style="width:100%;text-align:center;color:var(--g400);padding:20px 0">Sin datos suficientes</div>';
+    document.getElementById('d-chart-labels').innerHTML = '';
+  } else {
+    var max = Math.max.apply(null, meses.map(function(m){return porMes[m];})) || 1;
+    document.getElementById('d-chart-bars').innerHTML = meses.map(function(m){
+      var val = porMes[m];
+      var h = Math.max(4, Math.round(val/max*140));
+      return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">'+
+        '<div style="font-size:10px;font-weight:600;color:var(--navy);margin-bottom:4px;white-space:nowrap">'+fmtCorto(val)+'</div>'+
+        '<div style="width:70%;background:linear-gradient(180deg,var(--gold),var(--gold-lt));border-radius:5px 5px 0 0;height:'+h+'px"></div>'+
+      '</div>';
+    }).join('');
+    document.getElementById('d-chart-labels').innerHTML = meses.map(function(m){
+      var partes=m.split('-'); var lbl=MESES_CORTOS[parseInt(partes[1],10)-1]+' '+partes[0].slice(2);
+      return '<div style="flex:1;text-align:center;font-size:10px;color:var(--g500)">'+lbl+'</div>';
+    }).join('');
+  }
+
+  // Top 5 clientes
+  var porCliente = {};
+  todas.forEach(function(v){ if(!porCliente[v.cliente]) porCliente[v.cliente]={n:0,total:0}; porCliente[v.cliente].n++; porCliente[v.cliente].total+=v.precio_final; });
+  var top5 = Object.entries(porCliente).sort(function(a,b){return b[1].total-a[1].total;}).slice(0,5);
+  document.getElementById('d-top5').innerHTML = top5.length===0
+    ? '<p style="color:var(--g400);text-align:center;padding:16px">Sin datos</p>'
+    : top5.map(function(e,i){
+        var medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+        return '<div class="venta-item"><div><div class="venta-cliente">'+medal+' '+e[0]+'</div><div class="venta-cip-small">'+e[1].n+' compra(s)</div></div><div class="venta-monto">'+fmt(e[1].total)+'</div></div>';
+      }).join('');
+
+  // Alertas (créditos pendientes + stock agotado con detalle)
+  var alertasHtml = '';
+  if ((d.creditos_activos||0)>0) {
+    alertasHtml += '<div class="alert-item"><div class="alert-icon">⏳</div><div><div>'+d.creditos_activos+' crédito(s) pendiente(s)</div><div style="font-size:11px;color:var(--g500)">Saldo: '+fmt(d.saldo_cxc)+'</div></div></div>';
+  }
+  try {
+    var ar = await apiFetch(API+'/api/stock/agotados');
+    var ad = await ar.json();
+    if ((ad.total||0)>0) {
+      alertasHtml += '<div style="margin-top:'+(alertasHtml?'12px':'0')+';font-weight:600;font-size:13px;color:var(--err);padding:0 2px 6px">📦 '+ad.total+' producto(s) sin stock</div>';
+      alertasHtml += '<div style="max-height:220px;overflow-y:auto">'+ad.agotados.slice(0,15).map(function(p){
+        return '<div class="alert-item"><div class="alert-icon">📦</div><div><div>'+p.codigo_cip+'</div><div style="font-size:11px;color:var(--g500)">'+(p.descripcion||'')+'</div></div></div>';
+      }).join('')+'</div>';
+      if (ad.total>15) alertasHtml += '<div style="text-align:center;padding:8px;font-size:12px;color:var(--g500)">+ '+(ad.total-15)+' producto(s) más agotado(s)</div>';
+    }
+  } catch(e3){}
+  document.getElementById('d-alertas').innerHTML = alertasHtml || '<div style="text-align:center;padding:16px;color:var(--ok)">✅ Todo en orden</div>';
 }
 
 // CATÁLOGO
