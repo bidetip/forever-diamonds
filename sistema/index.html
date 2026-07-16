@@ -32,6 +32,10 @@ body{font-family:'Inter',sans-serif;background:var(--g50);color:var(--navy);min-
 .nav-desktop{background:var(--white);border-bottom:2px solid var(--g200);overflow-x:auto;white-space:nowrap;padding:0 20px;display:flex}
 .nav-item{display:inline-flex;align-items:center;gap:6px;padding:14px 16px;font-size:12px;font-weight:600;color:var(--g500);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;text-transform:uppercase;letter-spacing:.08em;transition:all .15s;white-space:nowrap}
 .nav-item.active{color:var(--navy);border-bottom-color:var(--gold)}
+.subnav{background:var(--g50);border-bottom:1px solid var(--g200);padding:6px 20px;display:flex;gap:8px;align-items:center}
+.subnav-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border:1px solid var(--g200);border-radius:6px;background:var(--white);color:var(--navy);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
+.subnav-btn:hover:not(:disabled){border-color:var(--gold);background:var(--gold-lt)}
+.subnav-btn:disabled{opacity:.35;cursor:not-allowed}
 .content{padding:20px 16px 80px;max-width:1100px;margin:0 auto;flex:1}
 .panel{display:none}.panel.active{display:block}
 /* CARDS */
@@ -208,14 +212,19 @@ code{font-family:'Courier New',monospace;font-size:11px;background:var(--g100);p
     </div>
   </div>
   <div class="nav-desktop">
-    <div class="nav-item active" onclick="showPanel('dashboard',this)">📊 Tablero</div>
-    <div class="nav-item" onclick="showPanel('ventas-lista',this);cargarListaVentas()">📋 Ventas</div>
-    <div class="nav-item" onclick="showPanel('nueva-venta',this);prepararNuevaVenta()">🛍️ Nueva Venta</div>
-    <div class="nav-item" onclick="showPanel('pagos',this)">💰 Registrar Pago</div>
-    <div class="nav-item" onclick="showPanel('inventario',this);if(!inventarioData.length)cargarCatalogo()">📦 Inventario</div>
-    <div class="nav-item" onclick="showPanel('creditos',this);cargarCXC()">📋 Créditos</div>
-    <div class="nav-item" onclick="showPanel('reportes',this)">📈 Reportes</div>
-    <div class="nav-item" onclick="showPanel('estado-resultados',this)">📉 Estado Resultados</div>
+    <div class="nav-item active" data-panel="dashboard" onclick="irAPanel('dashboard')">📊 Tablero</div>
+    <div class="nav-item" data-panel="ventas-lista" onclick="irAPanel('ventas-lista')">📋 Ventas</div>
+    <div class="nav-item" data-panel="nueva-venta" onclick="irAPanel('nueva-venta')">🛍️ Nueva Venta</div>
+    <div class="nav-item" data-panel="pagos" onclick="irAPanel('pagos')">💰 Registrar Pago</div>
+    <div class="nav-item" data-panel="inventario" onclick="irAPanel('inventario')">📦 Inventario</div>
+    <div class="nav-item" data-panel="creditos" onclick="irAPanel('creditos')">📋 Créditos</div>
+    <div class="nav-item" data-panel="reportes" onclick="irAPanel('reportes')">📈 Reportes</div>
+    <div class="nav-item" data-panel="estado-resultados" onclick="irAPanel('estado-resultados')">📉 Estado Resultados</div>
+  </div>
+  <div class="subnav">
+    <button class="subnav-btn" id="nav-atras" onclick="history.back()">◀ Atrás</button>
+    <button class="subnav-btn" id="nav-inicio" onclick="irAPanel('dashboard')">🏠 Inicio</button>
+    <button class="subnav-btn" id="nav-adelante" onclick="history.forward()">Adelante ▶</button>
   </div>
   <div class="content">
 
@@ -465,6 +474,9 @@ function doLogin() {
     cargarDashboard();
     cargarCatalogo();
     cargarClientesCache();
+    navStack = ['dashboard']; navPos = 0;
+    history.replaceState({navPos:0}, '', '#dashboard');
+    actualizarBotonesNav();
   } else {
     errEl.style.display = 'block';
     document.getElementById('lp').value = '';
@@ -479,12 +491,49 @@ function doLogout() {
 }
 
 // NAVEGACIÓN
-function showPanel(name, el) {
+function showPanel(name) {
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
-  document.getElementById('panel-'+name).classList.add('active');
-  if(el) el.classList.add('active');
+  var panel = document.getElementById('panel-'+name);
+  if (panel) panel.classList.add('active');
+  var navEl = document.querySelector('.nav-item[data-panel="'+name+'"]');
+  if (navEl) navEl.classList.add('active');
+  window.scrollTo(0,0);
 }
+
+// HISTORIAL DE NAVEGACIÓN (Atrás / Inicio / Adelante)
+var navStack = ['dashboard'], navPos = 0;
+var PANEL_LOADERS = {
+  'ventas-lista': function(){ cargarListaVentas(); },
+  'nueva-venta': function(){ prepararNuevaVenta(); },
+  'inventario': function(){ if(!inventarioData.length) cargarCatalogo(); },
+  'creditos': function(){ cargarCXC(); }
+};
+function irAPanelDesdeHistorial(name) {
+  showPanel(name);
+  if (PANEL_LOADERS[name]) PANEL_LOADERS[name]();
+  actualizarBotonesNav();
+}
+function irAPanel(name) {
+  if (navStack[navPos] !== name) {
+    navStack = navStack.slice(0, navPos+1);
+    navStack.push(name);
+    navPos++;
+    history.pushState({navPos:navPos}, '', '#'+name);
+  }
+  irAPanelDesdeHistorial(name);
+}
+function actualizarBotonesNav() {
+  var btnA = document.getElementById('nav-atras'), btnD = document.getElementById('nav-adelante');
+  if (btnA) btnA.disabled = navPos<=0;
+  if (btnD) btnD.disabled = navPos>=navStack.length-1;
+}
+window.addEventListener('popstate', function(e){
+  if (e.state && typeof e.state.navPos === 'number' && navStack[e.state.navPos]) {
+    navPos = e.state.navPos;
+    irAPanelDesdeHistorial(navStack[navPos]);
+  }
+});
 
 // DASHBOARD
 var MESES_CORTOS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
