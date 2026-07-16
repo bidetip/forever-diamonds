@@ -220,6 +220,7 @@ code{font-family:'Courier New',monospace;font-size:11px;background:var(--g100);p
     <div class="nav-item" data-panel="creditos" onclick="irAPanel('creditos')">📋 Créditos</div>
     <div class="nav-item" data-panel="reportes" onclick="irAPanel('reportes')">📈 Reportes</div>
     <div class="nav-item" data-panel="estado-resultados" onclick="irAPanel('estado-resultados')">📉 Estado Resultados</div>
+    <div class="nav-item" data-panel="compras" onclick="irAPanel('compras')">🛒 Compras</div>
   </div>
   <div class="subnav">
     <button class="subnav-btn" id="nav-atras" onclick="history.back()">◀ Atrás</button>
@@ -405,6 +406,30 @@ code{font-family:'Courier New',monospace;font-size:11px;background:var(--g100);p
       <div id="er-resultado"></div>
     </div>
 
+    <!-- COMPRAS -->
+    <div class="panel" id="panel-compras">
+      <div class="card">
+        <div class="card-title">🛒 Nueva Compra (desde Excel)</div>
+        <div class="field">
+          <label class="lbl">Lote</label>
+          <select id="cp-lote-select" onchange="cambiarLoteSelect()">
+            <option value="">Cargando lotes...</option>
+          </select>
+        </div>
+        <div id="cp-nuevo-lote-box" style="display:none;margin-top:10px;padding:12px;background:var(--g50);border-radius:var(--radius)">
+          <div class="field"><label class="lbl">Nombre del nuevo lote</label><input type="text" id="cp-lote-nombre" placeholder="Ej: Lote 5 - Feria Las Vegas"/></div>
+          <div class="field" style="margin-top:8px"><label class="lbl">Descripción</label><input type="text" id="cp-lote-desc" placeholder="Ej: Compras feria Las Vegas julio 2026"/></div>
+          <button class="btn btn-secondary btn-full" style="margin-top:8px" onclick="crearLoteNuevo()">➕ Crear Lote</button>
+        </div>
+        <div class="field" style="margin-top:14px">
+          <label class="lbl">Archivo Excel de la factura (.xlsx)</label>
+          <input type="file" id="cp-archivo" accept=".xlsx" style="width:100%;padding:10px;border:2px solid var(--g200);border-radius:var(--radius)"/>
+        </div>
+        <button class="btn btn-primary btn-full" style="margin-top:10px" onclick="previsualizarCompra()">📤 Subir y Previsualizar</button>
+      </div>
+      <div id="cp-preview"></div>
+    </div>
+
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -507,7 +532,8 @@ var PANEL_LOADERS = {
   'ventas-lista': function(){ cargarListaVentas(); },
   'nueva-venta': function(){ prepararNuevaVenta(); },
   'inventario': function(){ if(!inventarioData.length) cargarCatalogo(); },
-  'creditos': function(){ cargarCXC(); }
+  'creditos': function(){ cargarCXC(); },
+  'compras': function(){ cargarLotes(); }
 };
 function irAPanelDesdeHistorial(name) {
   showPanel(name);
@@ -911,6 +937,105 @@ async function generarEstadoResultados(historico) {
   } catch(e) {
     document.getElementById('er-resultado').innerHTML = '<div class="card"><div style="color:var(--err);padding:20px">Error al generar el Estado de Resultados. Verifica la conexión con el servidor.</div></div>';
   }
+}
+
+// COMPRAS
+var lotesCache = [];
+var previewCompraData = null;
+
+async function cargarLotes() {
+  try {
+    var res = await apiFetch(API+'/api/lotes');
+    lotesCache = await res.json();
+    var sel = document.getElementById('cp-lote-select');
+    var actual = sel.value;
+    sel.innerHTML = lotesCache.map(function(l){
+      return '<option value="'+l.nombre+'">'+l.nombre+' · '+l.estado+' ('+fmt(l.total_compras)+')</option>';
+    }).join('') + '<option value="__nuevo__">➕ Nuevo Lote...</option>';
+    if (actual && lotesCache.some(function(l){return l.nombre===actual;})) sel.value = actual;
+  } catch(e) { toast('No se pudieron cargar los lotes', 'er'); }
+}
+function cambiarLoteSelect() {
+  var sel = document.getElementById('cp-lote-select');
+  document.getElementById('cp-nuevo-lote-box').style.display = sel.value==='__nuevo__' ? 'block' : 'none';
+}
+async function crearLoteNuevo() {
+  var nombre = document.getElementById('cp-lote-nombre').value.trim();
+  var desc = document.getElementById('cp-lote-desc').value.trim();
+  if (!nombre) { toast('Escribe un nombre para el lote', 'er'); return; }
+  try {
+    var res = await apiFetch(API+'/api/lotes', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({nombre:nombre, descripcion:desc})});
+    var d = await res.json();
+    if (!res.ok) { toast(d.detail||'Error al crear el lote', 'er'); return; }
+    document.getElementById('cp-lote-nombre').value = '';
+    document.getElementById('cp-lote-desc').value = '';
+    document.getElementById('cp-nuevo-lote-box').style.display = 'none';
+    await cargarLotes();
+    document.getElementById('cp-lote-select').value = nombre;
+    toast('✓ Lote "'+nombre+'" creado', 'ok');
+  } catch(e) { toast('Sin conexión', 'er'); }
+}
+async function previsualizarCompra() {
+  var lote = document.getElementById('cp-lote-select').value;
+  if (!lote || lote==='__nuevo__') { toast('Selecciona o crea un lote primero', 'er'); return; }
+  var archivo = document.getElementById('cp-archivo').files[0];
+  if (!archivo) { toast('Selecciona un archivo Excel', 'er'); return; }
+  document.getElementById('cp-preview').innerHTML = '<div class="card"><div style="text-align:center;padding:30px;color:var(--g400)">Leyendo el archivo...</div></div>';
+  try {
+    var fd = new FormData();
+    fd.append('file', archivo);
+    fd.append('lote', lote);
+    var res = await apiFetch(API+'/api/compras/preview', {method:'POST', body:fd});
+    var d = await res.json();
+    if (!res.ok) { document.getElementById('cp-preview').innerHTML=''; toast(d.detail||'Error al leer el Excel', 'er'); return; }
+    previewCompraData = d;
+    renderPreviewCompra();
+  } catch(e) { document.getElementById('cp-preview').innerHTML=''; toast('Sin conexión', 'er'); }
+}
+function renderPreviewCompra() {
+  var d = previewCompraData;
+  var filasHtml = d.filas.map(function(f){
+    var alerta = f.advertencia_comprador || f.advertencia_duplicado;
+    var notas = [];
+    if (f.advertencia_comprador) notas.push('⚠️ Factura a nombre de "'+f.comprador_factura+'", no "Forever Diamonds"');
+    if (f.advertencia_duplicado) notas.push('⚠️ Posible duplicado: ya existe una compra con este proveedor+factura+código');
+    return '<tr style="'+(alerta?'background:#FFF3CD':'')+'">'+
+      '<td>'+f.codigo_cip+'</td><td>'+f.descripcion+'</td><td>'+f.proveedor+'</td>'+
+      '<td>'+fmt(f.precio_neto)+'</td><td>'+f.cantidad+'</td><td>'+fmt(f.valor_total)+'</td>'+
+      '<td style="color:var(--err);font-size:12px">'+notas.join('<br>')+'</td></tr>';
+  }).join('');
+  document.getElementById('cp-preview').innerHTML =
+    '<div class="card"><div class="card-title">📋 Previsualización · Lote: '+d.lote+'</div>'+
+    (d.advertencias>0 ? '<div style="background:#FFF3CD;color:#856404;padding:10px;border-radius:8px;margin-bottom:12px;font-size:13px">⚠️ '+d.advertencias+' fila(s) con advertencias — revísalas antes de confirmar</div>' : '')+
+    '<div class="table-wrap"><table><thead><tr><th>CIP (nuevo)</th><th>Descripción</th><th>Proveedor</th><th>Precio Neto</th><th>Cant</th><th>Total</th><th>Advertencia</th></tr></thead><tbody>'+filasHtml+'</tbody></table></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:14px;border-top:2px solid var(--g200)">'+
+      '<div><strong>'+d.total_filas+' producto(s)</strong> · Total: <strong>'+fmt(d.total_valor)+'</strong></div>'+
+    '</div>'+
+    '<div style="display:flex;gap:10px;margin-top:14px">'+
+      '<button class="btn btn-secondary" style="flex:1" onclick="cancelarPreviewCompra()">✕ Cancelar</button>'+
+      '<button class="btn btn-primary" style="flex:1" onclick="confirmarCompraFinal()">✓ Confirmar y Guardar</button>'+
+    '</div></div>';
+}
+function cancelarPreviewCompra() {
+  previewCompraData = null;
+  document.getElementById('cp-preview').innerHTML = '';
+  document.getElementById('cp-archivo').value = '';
+}
+async function confirmarCompraFinal() {
+  if (!previewCompraData) return;
+  document.getElementById('cp-preview').innerHTML = '<div class="card"><div style="text-align:center;padding:30px;color:var(--g400)">Guardando compra...</div></div>';
+  try {
+    var res = await apiFetch(API+'/api/compras/confirmar', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({lote:previewCompraData.lote, filas:previewCompraData.filas})});
+    var d = await res.json();
+    if (!res.ok) { toast(d.detail||'Error al guardar la compra', 'er'); renderPreviewCompra(); return; }
+    toast('✓ '+d.insertados+' producto(s) registrado(s) en '+d.lote, 'ok');
+    document.getElementById('cp-preview').innerHTML = '<div class="card"><div style="text-align:center;padding:20px;color:var(--ok)">✅ Compra registrada. Códigos CIP generados:<br><span style="font-size:12px;color:var(--g500)">'+d.codigos_cip.join(', ')+'</span></div></div>';
+    document.getElementById('cp-archivo').value = '';
+    previewCompraData = null;
+    cargarLotes();
+    inventarioData = [];
+    cargarDashboard();
+  } catch(e) { toast('Sin conexión', 'er'); }
 }
 
 // INICIAR
